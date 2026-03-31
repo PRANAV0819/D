@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Sign in — GrowthHive{% endblock %}
+
+{% block auth_content %}
+<div class="gh-auth-container gh-auth-center">
+  <div class="gh-auth-right" style="max-width:460px;width:100%">
+    <div class="gh-auth-card">
+
+      <div class="gh-auth-logo-sm">
+        <i class="bi bi-hexagon-fill"></i> GrowthHive
+      </div>
+
+      <div class="gh-auth-card-header">
+        <h1>Welcome back</h1>
+        <p>Don't have an account? <a href="{% url 'accounts:signup' %}">Sign up free</a></p>
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="gh-label">Email address</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="gh-field-error">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-4">
+          <label class="gh-label">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}<div class="gh-field-error">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <button type="submit" class="btn gh-btn-primary w-100">
+          Sign in <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

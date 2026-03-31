@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header">
+  <h1>Good to see you, {{ user.first_name }} 👋</h1>
+  <p class="text-muted">Here's what's happening on your campus today.</p>
+</div>
+
+<div class="row g-3">
+
+  <!-- Profile completion card -->
+  <div class="col-12 col-lg-4">
+    <div class="gh-card">
+      <div class="gh-card-profile-banner">
+        {% if profile.banner %}
+          <img src="{{ profile.banner.url }}" alt="banner"/>
+        {% endif %}
+      </div>
+      <div class="gh-card-profile-body">
+        <img src="{{ user.profile.get_avatar_url }}" class="gh-card-avatar" alt="avatar"/>
+        <h5>{{ user.get_full_name }}</h5>
+        <p class="text-muted small">{{ user.get_role_display }}
+          {% if user.department %} · {{ user.department.code }}{% endif %}
+          {% if user.college %} · {{ user.college.name }}{% endif %}
+        </p>
+        {% if profile.bio %}
+        <p class="gh-card-bio">{{ profile.bio }}</p>
+        {% endif %}
+        <!-- Points & Streak -->
+        <div class="gh-stats-row">
+          <div class="gh-stat">
+            <span class="gh-stat-val">{{ profile.points }}</span>
+            <span class="gh-stat-label">Points</span>
+          </div>
+          <div class="gh-stat">
+            <span class="gh-stat-val">{{ profile.streak_days }}</span>
+            <span class="gh-stat-label">Day streak</span>
+          </div>
+          <div class="gh-stat">
+            <span class="gh-stat-val">{{ user_skills.count }}</span>
+            <span class="gh-stat-label">Skills</span>
+          </div>
+        </div>
+        <a href="{% url 'accounts:edit_profile' %}" class="btn gh-btn-outline w-100 mt-2">
+          <i class="bi bi-pencil me-1"></i> Edit profile
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="col-12 col-lg-8">
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3">
+        <div class="gh-stat-card gh-stat-blue">
+          <i class="bi bi-briefcase-fill"></i>
+          <span class="val">0</span>
+          <span class="lbl">Jobs applied</span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="gh-stat-card gh-stat-purple">
+          <i class="bi bi-kanban-fill"></i>
+          <span class="val">0</span>
+          <span class="lbl">Projects</span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="gh-stat-card gh-stat-teal">
+          <i class="bi bi-people-fill"></i>
+          <span class="val">0</span>
+          <span class="lbl">Connections</span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="gh-stat-card gh-stat-amber">
+          <i class="bi bi-award-fill"></i>
+          <span class="val">0</span>
+          <span class="lbl">Badges</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills section -->
+    <div class="gh-card">
+      <div class="gh-card-header-row">
+        <h6 class="mb-0"><i class="bi bi-lightning-charge me-2"></i>Your skills</h6>
+        <a href="{% url 'accounts:edit_profile' %}" class="gh-link-sm">+ Add skill</a>
+      </div>
+      <div class="gh-skills-wrap mt-2">
+        {% for us in user_skills %}
+        <span class="gh-skill-badge gh-skill-{{ us.level }}">
+          {{ us.skill.name }}
+          <small>{{ us.get_level_display }}</small>
+        </span>
+        {% empty %}
+        <p class="text-muted small mb-0">No skills added yet. <a href="{% url 'accounts:edit_profile' %}">Add some!</a></p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

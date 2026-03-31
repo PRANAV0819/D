@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit profile — GrowthHive{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="edit-profile-page">
+
+  <div class="page-header">
+    <a href="{% url 'users:profile' pk=request.user.pk %}" class="back-link">
+      ← Back to profile
+    </a>
+    <h1 class="page-title">Edit profile</h1>
+  </div>
+
+  {% if messages %}
+  <div class="alert-list">
+    {% for message in messages %}
+    <div class="alert alert--{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="edit-form" novalidate>
+    {% csrf_token %}
+
+    <!-- ── Section: Basic info ──────────────────────────────────────── -->
+    <section class="form-section card">
+      <h2 class="form-section__title">Basic information</h2>
+
+      <div class="form-row form-row--2col">
+        <div class="form-group">
+          <label for="{{ user_form.first_name.id_for_label }}" class="form-label">
+            First name
+          </label>
+          {{ user_form.first_name }}
+          {% if user_form.first_name.errors %}
+          <p class="form-error">{{ user_form.first_name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ user_form.last_name.id_for_label }}" class="form-label">
+            Last name
+          </label>
+          {{ user_form.last_name }}
+          {% if user_form.last_name.errors %}
+          <p class="form-error">{{ user_form.last_name.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" value="{{ request.user.email }}" class="form-input" disabled>
+        <p class="form-hint">Email cannot be changed here. Contact support to update it.</p>
+      </div>
+    </section>
+
+    <!-- ── Section: Academic info ───────────────────────────────────── -->
+    <section class="form-section card">
+      <h2 class="form-section__title">Academic info</h2>
+
+      <div class="form-row form-row--2col">
+        <div class="form-group">
+          <label for="{{ profile_form.department.id_for_label }}" class="form-label">
+            Department
+          </label>
+          {{ profile_form.department }}
+          {% if profile_form.department.errors %}
+          <p class="form-error">{{ profile_form.department.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ profile_form.year.id_for_label }}" class="form-label">
+            Year
+          </label>
+          {{ profile_form.year }}
+          {% if profile_form.year.errors %}
+          <p class="form-error">{{ profile_form.year.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Section: About ───────────────────────────────────────────── -->
+    <section class="form-section card">
+      <h2 class="form-section__title">About you</h2>
+
+      <div class="form-group">
+        <label for="{{ profile_form.bio.id_for_label }}" class="form-label">Bio</label>
+        {{ profile_form.bio }}
+        <p class="form-hint char-counter" data-target="{{ profile_form.bio.id_for_label }}" data-max="500">
+          0 / 500
+        </p>
+        {% if profile_form.bio.errors %}
+        <p class="form-error">{{ profile_form.bio.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Skills tag input -->
+      <div class="form-group">
+        <label class="form-label">Skills</label>
+        <div class="tag-input-container" id="tag-input-container">
+          <div id="tag-list" class="tag-list"></div>
+          <input
+            type="text"
+            id="tag-text-input"
+            class="tag-text-input"
+            placeholder="Type a skill and press Enter…"
+            autocomplete="off"
+          >
+        </div>
+        {{ profile_form.skills_raw }}
+        <p class="form-hint">Press Enter or comma to add a skill. Click × to remove.</p>
+      </div>
+    </section>
+
+    <!-- ── Section: Avatar ──────────────────────────────────────────── -->
+    <section class="form-section card">
+      <h2 class="form-section__title">Profile picture</h2>
+      <div class="avatar-upload">
+        <img
+          id="avatar-preview"
+          src="{{ request.user.profile.avatar_url }}"
+          alt="Current avatar"
+          class="avatar-preview"
+        >
+        <div class="avatar-upload__controls">
+          {{ profile_form.avatar }}
+          {% if profile_form.avatar.errors %}
+          <p class="form-error">{{ profile_form.avatar.errors.0 }}</p>
+          {% endif %}
+          <p class="form-hint">JPG or PNG, max 2 MB. Square images work best.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Section: Social links ────────────────────────────────────── -->
+    <section class="form-section card">
+      <h2 class="form-section__title">Social links</h2>
+
+      {% for field_name, label in profile_form.link_fields.items %}
+      {% with field=profile_form|dict_key:field_name %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}" class="form-label">{{ label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <p class="form-error">{{ field.errors.0 }}</p>
+        {% endif %}
+      </div>
+      {% endwith %}
+      {% endfor %}
+
+      <div class="form-group">
+        <label for="{{ profile_form.github_link.id_for_label }}" class="form-label">GitHub</label>
+        {{ profile_form.github_link }}
+        {% if profile_form.github_link.errors %}<p class="form-error">{{ profile_form.github_link.errors.0 }}</p>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="{{ profile_form.linkedin_link.id_for_label }}" class="form-label">LinkedIn</label>
+        {{ profile_form.linkedin_link }}
+        {% if profile_form.linkedin_link.errors %}<p class="form-error">{{ profile_form.linkedin_link.errors.0 }}</p>{% endif %}
+      </div>
+      <div class="form-group">
+        <label for="{{ profile_form.website_link.id_for_label }}" class="form-label">Website</label>
+        {{ profile_form.website_link }}
+        {% if profile_form.website_link.errors %}<p class="form-error">{{ profile_form.website_link.errors.0 }}</p>{% endif %}
+      </div>
+    </section>
+
+    <!-- ── Section: Privacy ─────────────────────────────────────────── -->
+    <section class="form-section card">
+      <h2 class="form-section__title">Privacy</h2>
+      <div class="form-group form-group--inline">
+        {{ profile_form.is_public }}
+        <label for="{{ profile_form.is_public.id_for_label }}" class="form-label form-label--inline">
+          Make my profile visible to all GrowthHive members
+        </label>
+      </div>
+    </section>
+
+    <!-- ── Actions ──────────────────────────────────────────────────── -->
+    <div class="form-actions">
+      <a href="{% url 'users:profile' pk=request.user.pk %}" class="btn btn--ghost">
+        Cancel
+      </a>
+      <button type="submit" class="btn btn--primary">
+        Save changes
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  window.INITIAL_SKILLS = {{ skills_json|safe }};
+</script>
+<script src="{% static 'js/edit_profile.js' %}" defer></script>
+{% endblock %}

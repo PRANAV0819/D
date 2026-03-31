@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Edit Profile — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header">
+  <h1>Edit profile</h1>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-8">
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <!-- Basic info -->
+      <div class="gh-card mb-3">
+        <h6 class="gh-card-title">Basic information</h6>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="gh-label">First name</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}<div class="gh-field-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-6">
+            <label class="gh-label">Last name</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}<div class="gh-field-error">{{ form.last_name.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="gh-label">Bio</label>
+          {{ form.bio }}
+        </div>
+        <div class="mb-3">
+          <label class="gh-label">Location</label>
+          {{ form.location }}
+        </div>
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="gh-label">Graduation year</label>
+            {{ form.graduation_year }}
+          </div>
+          <div class="col-6">
+            <label class="gh-label">Current year</label>
+            {{ form.current_year }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile photo -->
+      <div class="gh-card mb-3">
+        <h6 class="gh-card-title">Profile photo & banner</h6>
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="gh-label">Avatar</label>
+            {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}" class="gh-thumb mb-2" alt="current avatar"/>
+            {% endif %}
+            {{ form.avatar }}
+          </div>
+          <div class="col-6">
+            <label class="gh-label">Banner image</label>
+            {% if profile.banner %}
+            <img src="{{ profile.banner.url }}" class="gh-thumb mb-2" alt="current banner"/>
+            {% endif %}
+            {{ form.banner }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="gh-card mb-3">
+        <h6 class="gh-card-title">Social links</h6>
+        <div class="mb-3">
+          <label class="gh-label"><i class="bi bi-github me-1"></i>GitHub URL</label>
+          {{ form.github_url }}
+        </div>
+        <div class="mb-3">
+          <label class="gh-label"><i class="bi bi-linkedin me-1"></i>LinkedIn URL</label>
+          {{ form.linkedin_url }}
+        </div>
+        <div class="mb-3">
+          <label class="gh-label"><i class="bi bi-globe me-1"></i>Website</label>
+          {{ form.website }}
+        </div>
+      </div>
+
+      <!-- Documents & availability -->
+      <div class="gh-card mb-3">
+        <h6 class="gh-card-title">Resume & availability</h6>
+        <div class="mb-3">
+          <label class="gh-label">Resume (PDF)</label>
+          {% if profile.resume %}<p class="text-muted small">Current: <a href="{{ profile.resume.url }}" target="_blank">View resume</a></p>{% endif %}
+          {{ form.resume }}
+        </div>
+        <div class="d-flex gap-4">
+          <div class="form-check">
+            {{ form.is_open_to_work }}
+            <label class="form-check-label" for="{{ form.is_open_to_work.id_for_label }}">Open to work</label>
+          </div>
+          <div class="form-check">
+            {{ form.is_open_to_mentor }}
+            <label class="form-check-label" for="{{ form.is_open_to_mentor.id_for_label }}">Open to mentoring</label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn gh-btn-primary px-4">
+        <i class="bi bi-check-lg me-1"></i>Save changes
+      </button>
+      <a href="{% url 'accounts:profile' %}" class="btn gh-btn-outline ms-2">Cancel</a>
+    </form>
+
+  </div>
+
+  <!-- Skills sidebar -->
+  <div class="col-12 col-lg-4">
+    <div class="gh-card">
+      <h6 class="gh-card-title">Skills</h6>
+
+      <!-- Existing skills -->
+      <div class="gh-skills-wrap mb-3">
+        {% for us in request.user.user_skills.all %}
+        <div class="gh-skill-badge-edit">
+          <span class="gh-skill-badge gh-skill-{{ us.level }}">{{ us.skill.name }}</span>
+          <form method="post" action="{% url 'accounts:remove_skill' us.skill.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="gh-skill-remove" title="Remove">
+              <i class="bi bi-x"></i>
+            </button>
+          </form>
+        </div>
+        {% empty %}
+        <p class="text-muted small">No skills yet.</p>
+        {% endfor %}
+      </div>
+
+      <!-- Add skill form -->
+      <form method="post" action="{% url 'accounts:add_skill' %}" novalidate>
+        {% csrf_token %}
+        <div class="mb-2">
+          <label class="gh-label">Skill name</label>
+          <input type="text" name="skill_name" class="gh-input" placeholder="e.g. Python, Figma, SQL" required/>
+        </div>
+        <div class="mb-2">
+          <label class="gh-label">Level</label>
+          <select name="level" class="gh-input">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate" selected>Intermediate</option>
+            <option value="advanced">Advanced</option>
+            <option value="expert">Expert</option>
+          </select>
+        </div>
+        <button type="submit" class="btn gh-btn-primary w-100">
+          <i class="bi bi-plus-lg me-1"></i>Add skill
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

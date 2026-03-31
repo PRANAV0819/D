@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign up — GrowthHive{% endblock %}
+
+{% block auth_content %}
+<div class="gh-auth-container">
+
+  <!-- Left panel -->
+  <div class="gh-auth-left d-none d-lg-flex">
+    <div class="gh-auth-left-content">
+      <div class="gh-auth-logo">
+        <i class="bi bi-hexagon-fill"></i> GrowthHive
+      </div>
+      <h2>Your campus. Supercharged.</h2>
+      <p>Connect with alumni, land internships, collaborate on projects — all in one platform built for college students.</p>
+      <ul class="gh-auth-features">
+        <li><i class="bi bi-check-circle-fill"></i> Find mentors & collaborators</li>
+        <li><i class="bi bi-check-circle-fill"></i> Discover jobs & scholarships</li>
+        <li><i class="bi bi-check-circle-fill"></i> Build your academic portfolio</li>
+        <li><i class="bi bi-check-circle-fill"></i> AI-powered career guidance</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Right panel — form -->
+  <div class="gh-auth-right">
+    <div class="gh-auth-card">
+      <div class="gh-auth-card-header">
+        <h1>Create your account</h1>
+        <p>Already have one? <a href="{% url 'accounts:login' %}">Sign in</a></p>
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- Name row -->
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="gh-label">First name</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}<div class="gh-field-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col-6">
+            <label class="gh-label">Last name</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}<div class="gh-field-error">{{ form.last_name.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="gh-label">Email address</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="gh-field-error">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="gh-label">I am a</label>
+          {{ form.role }}
+          {% if form.role.errors %}<div class="gh-field-error">{{ form.role.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="gh-label">College</label>
+          {{ form.college }}
+          {% if form.college.errors %}<div class="gh-field-error">{{ form.college.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="gh-label">Department</label>
+          {{ form.department }}
+          {% if form.department.errors %}<div class="gh-field-error">{{ form.department.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="gh-label">Password</label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}<div class="gh-field-error">{{ form.password1.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label class="gh-label">Confirm password</label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}<div class="gh-field-error">{{ form.password2.errors.0 }}</div>{% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <button type="submit" class="btn gh-btn-primary w-100">
+          Create account <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dynamically load departments when college changes
+document.querySelector('[name="college"]').addEventListener('change', function () {
+  const collegeId = this.value;
+  const deptSelect = document.querySelector('[name="department"]');
+  deptSelect.innerHTML = '<option value="">— Loading… —</option>';
+  if (!collegeId) return;
+  fetch(`/accounts/ajax/departments/?college_id=${collegeId}`)
+    .then(r => r.json())
+    .then(data => {
+      deptSelect.innerHTML = '<option value="">— Select department —</option>';
+      data.departments.forEach(d => {
+        deptSelect.innerHTML += `<option value="${d.id}">${d.code} — ${d.name}</option>`;
+      });
+    });
+});
+</script>
+{% endblock %}
