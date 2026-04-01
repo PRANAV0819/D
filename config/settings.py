@@ -7,6 +7,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
+    'daphne',    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -16,11 +17,27 @@ INSTALLED_APPS = [
     # Third-party
     'crispy_forms',
     'crispy_bootstrap5',
+    'channels', 
     # Local
     'apps.accounts',
     'apps.social',        # ← add
     'apps.connections',   # ← add
+    'apps.chat',
 ]
+
+# ── ASGI app (replaces WSGI for WebSocket support) ──
+ASGI_APPLICATION = 'config.asgi.application'
+
+# ── Channel layer ──────────────────────────────────
+# Option A — Redis (production, recommended)
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

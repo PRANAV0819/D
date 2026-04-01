@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Messages — GrowthHive{% endblock %}
+
+{% block content %}
+{# Override content area padding for full-height chat #}
+<style>
+  .gh-content { padding: 0 !important; height: calc(100vh - 52px); overflow: hidden; display: flex; }
+  @media (max-width: 991px) { .gh-content { height: calc(100vh - 52px); } }
+</style>
+
+<div class="gh-chat-shell">
+
+  <!-- ══════════ LEFT: Conversation list ══════════ -->
+  <aside class="gh-chat-list {% if active_room %}gh-chat-list--hidden-mobile{% endif %}">
+
+    <!-- Search conversations -->
+    <div class="gh-chat-list-header">
+      <h5 class="gh-chat-list-title">Messages</h5>
+      <a href="{% url 'connections:network' %}" class="gh-icon-btn" title="Find people">
+        <i class="bi bi-pencil-square"></i>
+      </a>
+    </div>
+
+    <div class="gh-chat-search-wrap">
+      <i class="bi bi-search gh-chat-search-icon"></i>
+      <input type="text" class="gh-chat-search" placeholder="Search conversations…" id="chatSearch"/>
+    </div>
+
+    <!-- Room list -->
+    <div class="gh-chat-rooms" id="roomList">
+      {% for item in room_list %}
+      <a href="{% url 'chat:room' item.room.pk %}"
+         class="gh-room-item {% if active_room and active_room.pk == item.room.pk %}active{% endif %}"
+         id="room-item-{{ item.room.pk }}">
+        <div class="gh-room-avatar-wrap">
+          <img src="{{ item.display_avatar }}" class="gh-room-avatar" alt="avatar"/>
+          {% if item.room.room_type == 'group' %}
+          <span class="gh-room-group-badge"><i class="bi bi-people-fill"></i></span>
+          {% endif %}
+        </div>
+        <div class="gh-room-meta">
+          <div class="gh-room-top">
+            <span class="gh-room-name">{{ item.display_name }}</span>
+            {% if item.last_message %}
+            <span class="gh-room-time">{{ item.last_message.created_at|timesince|truncatechars:8 }}</span>
+            {% endif %}
+          </div>
+          <div class="gh-room-bottom">
+            <span class="gh-room-last-msg">
+              {% if item.last_message %}
+                {% if item.last_message.sender == request.user %}You: {% endif %}
+                {{ item.last_message.content|truncatechars:35 }}
+              {% else %}
+                Start the conversation
+              {% endif %}
+            </span>
+            {% if item.unread > 0 %}
+            <span class="gh-room-unread" id="unread-{{ item.room.pk }}">{{ item.unread }}</span>
+            {% else %}
+            <span class="gh-room-unread" id="unread-{{ item.room.pk }}" style="display:none;">0</span>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+      {% empty %}
+      <div class="gh-chat-empty">
+        <i class="bi bi-chat-dots"></i>
+        <p>No conversations yet.<br/>
+          <a href="{% url 'connections:network' %}">Find people to message</a>
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <!-- ══════════ RIGHT: Chat room ══════════ -->
+  <main class="gh-chat-room {% if not active_room %}gh-chat-room--empty{% endif %} {% if active_room %}gh-chat-room--active-mobile{% endif %}">
+
+    {% if active_room %}
+
+    <!-- Room header -->
+    <div class="gh-chat-room-header">
+      <a href="{% url 'chat:inbox' %}" class="gh-chat-back-btn d-lg-none">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      {% if other %}
+      <a href="{% url 'accounts:profile_detail' other.pk %}" class="gh-chat-header-profile">
+        <div class="gh-chat-header-avatar-wrap">
+          <img src="{{ other.profile.get_avatar_url }}" class="gh-chat-header-avatar" alt="avatar"/>
+          <span class="gh-online-dot" id="onlineDot" style="display:none;"></span>
+        </div>
+        <div>
+          <span class="gh-chat-header-name">{{ other.get_full_name }}</span>
+          <span class="gh-chat-header-status" id="headerStatus">
+            {{ other.get_role_display }}
+            {% if other.department %} · {{ other.department.code }}{% endif %}
+          </span>
+        </div>
+      </a>
+      {% else %}
+      <div class="gh-chat-header-profile">
+        <div class="gh-chat-header-avatar-wrap">
+          <div class="gh-chat-group-icon"><i class="bi bi-people-fill"></i></div>
+        </div>
+        <div>
+          <span class="gh-chat-header-name">{{ active_room.name }}</span>
+          <span class="gh-chat-header-status">Group chat · {{ active_room.members.count }} members</span>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="gh-chat-header-actions ms-auto">
+        {% if other %}
+        <a href="{% url 'accounts:profile_detail' other.pk %}" class="gh-icon-btn" title="View profile">
+          <i class="bi bi-person-circle"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Messages area -->
+    <div class="gh-messages-area" id="messagesArea">
+      {% for msg in messages %}
+      <div class="gh-msg-wrapper {% if msg.sender == request.user %}gh-msg-own{% else %}gh-msg-other{% endif %}"
+           id="msg-{{ msg.pk }}">
+        {% if msg.sender != request.user %}
+        <img src="{{ msg.sender.profile.get_avatar_url }}" class="gh-msg-avatar" alt="avatar"/>
+        {% endif %}
+        <div class="gh-msg-content">
+          {% if active_room.room_type == 'group' and msg.sender != request.user %}
+          <span class="gh-msg-sender-name">{{ msg.sender.get_full_name }}</span>
+          {% endif %}
+          <div class="gh-msg-bubble">
+            {{ msg.content|linebreaksbr }}
+          </div>
+          <div class="gh-msg-meta">
+            <span class="gh-msg-time">{{ msg.timestamp }}</span>
+            {% if msg.sender == request.user %}
+            <span class="gh-msg-seen" title="{% if msg.is_seen %}Seen{% else %}Delivered{% endif %}">
+              {% if msg.is_seen %}
+              <i class="bi bi-check2-all" style="color:var(--gh-blue);"></i>
+              {% else %}
+              <i class="bi bi-check2"></i>
+              {% endif %}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="gh-messages-start">
+        <i class="bi bi-chat-heart"></i>
+        <p>Say hi! Start the conversation.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Typing indicator -->
+    <div class="gh-typing-bar" id="typingBar" style="display:none;">
+      <div class="gh-typing-dots"><span></span><span></span><span></span></div>
+      <span class="gh-typing-text" id="typingText">Someone is typing…</span>
+    </div>
+
+    <!-- Message input -->
+    <div class="gh-chat-input-area">
+      <div class="gh-chat-input-wrap">
+        <textarea
+          id="messageInput"
+          class="gh-chat-input"
+          placeholder="Type a message…"
+          rows="1"
+          maxlength="5000"
+        ></textarea>
+        <button class="gh-chat-send-btn" id="sendBtn" disabled>
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- No room selected -->
+    <div class="gh-chat-placeholder">
+      <i class="bi bi-chat-dots"></i>
+      <h4>Select a conversation</h4>
+      <p>Choose from your conversations on the left, or<br/>
+         <a href="{% url 'connections:network' %}">find someone new to message.</a>
+      </p>
+    </div>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if active_room %}
+<script>
+const ROOM_ID   = {{ active_room.pk }};
+const MY_ID     = {{ request.user.pk }};
+const IS_GROUP = {% if active_room.room_type == "group" %}true{% else %}false{% endif %};
+
+// ── WebSocket connection ──────────────────────────────────────
+const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(`${protocol}//${location.host}/ws/chat/${ROOM_ID}/`);
+
+const msgArea   = document.getElementById('messagesArea');
+const input     = document.getElementById('messageInput');
+const sendBtn   = document.getElementById('sendBtn');
+const typingBar = document.getElementById('typingBar');
+const typingText= document.getElementById('typingText');
+const onlineDot = document.getElementById('onlineDot');
+const hdrStatus = document.getElementById('headerStatus');
+
+// Scroll to bottom of messages
+function scrollBottom(smooth = false) {
+  msgArea.scrollTo({ top: msgArea.scrollHeight, behavior: smooth ? 'smooth' : 'instant' });
+}
+scrollBottom();
+
+// ── WebSocket events ─────────────────────────────────────────
+ws.onopen = () => console.log('Chat connected');
+
+ws.onmessage = (e) => {
+  const data = JSON.parse(e.data);
+
+  if (data.type === 'chat_message') {
+    appendMessage(data);
+    // If message from other, mark as seen
+    if (data.sender_id !== MY_ID) {
+      ws.send(JSON.stringify({ type: 'seen' }));
+      // Clear unread badge in room list
+      const badge = document.getElementById(`unread-${ROOM_ID}`);
+      if (badge) badge.style.display = 'none';
+    }
+  }
+  else if (data.type === 'typing') {
+    if (data.is_typing) {
+      typingText.textContent = `${data.sender_name} is typing…`;
+      typingBar.style.display = 'flex';
+    } else {
+      typingBar.style.display = 'none';
+    }
+  }
+  else if (data.type === 'seen') {
+    // Update double-tick on own messages
+    document.querySelectorAll('.gh-msg-own .gh-msg-seen').forEach(el => {
+      el.innerHTML = '<i class="bi bi-check2-all" style="color:var(--gh-blue);"></i>';
+      el.title = 'Seen';
+    });
+  }
+  else if (data.type === 'online') {
+    if (onlineDot) onlineDot.style.display = 'block';
+    if (hdrStatus) hdrStatus.textContent = 'Online';
+  }
+};
+
+ws.onclose = () => console.log('Chat disconnected');
+ws.onerror = (e) => console.error('WebSocket error:', e);
+
+// ── Send message ─────────────────────────────────────────────
+function sendMessage() {
+  const content = input.value.trim();
+  if (!content || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({ type: 'chat_message', content }));
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+  clearTyping();
+}
+
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// ── Auto-grow textarea ───────────────────────────────────────
+input.addEventListener('input', () => {
+  sendBtn.disabled = !input.value.trim();
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  handleTyping();
+});
+
+// ── Typing indicator ─────────────────────────────────────────
+let typingTimer = null;
+let isTyping    = false;
+
+function handleTyping() {
+  if (!isTyping) {
+    isTyping = true;
+    ws.send(JSON.stringify({ type: 'typing', is_typing: true }));
+  }
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(clearTyping, 2000);
+}
+
+function clearTyping() {
+  if (isTyping) {
+    isTyping = false;
+    ws.send(JSON.stringify({ type: 'typing', is_typing: false }));
+  }
+}
+
+// ── Append incoming message to DOM ───────────────────────────
+function appendMessage(data) {
+  const isOwn = data.sender_id === MY_ID;
+  const wrapper = document.createElement('div');
+  wrapper.className = `gh-msg-wrapper ${isOwn ? 'gh-msg-own' : 'gh-msg-other'}`;
+  wrapper.id = `msg-${data.message_id}`;
+
+  const avatarHtml = !isOwn
+    ? `<img src="${data.sender_avatar}" class="gh-msg-avatar" alt="avatar"/>`
+    : '';
+
+  const senderNameHtml = (!isOwn && IS_GROUP)
+    ? `<span class="gh-msg-sender-name">${data.sender_name}</span>`
+    : '';
+
+  const seenHtml = isOwn
+    ? `<span class="gh-msg-seen"><i class="bi bi-check2"></i></span>`
+    : '';
+
+  // Convert newlines
+  const safeContent = data.content
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br/>');
+
+  wrapper.innerHTML = `
+    ${avatarHtml}
+    <div class="gh-msg-content">
+      ${senderNameHtml}
+      <div class="gh-msg-bubble">${safeContent}</div>
+      <div class="gh-msg-meta">
+        <span class="gh-msg-time">${data.timestamp}</span>
+        ${seenHtml}
+      </div>
+    </div>`;
+
+  // Remove "start conversation" placeholder if present
+  const placeholder = msgArea.querySelector('.gh-messages-start');
+  if (placeholder) placeholder.remove();
+
+  msgArea.appendChild(wrapper);
+  scrollBottom(true);
+}
+
+// ── Conversation list search ─────────────────────────────────
+const searchInput = document.getElementById('chatSearch');
+if (searchInput) {
+  searchInput.addEventListener('input', function () {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.gh-room-item').forEach(item => {
+      const name = item.querySelector('.gh-room-name').textContent.toLowerCase();
+      item.style.display = name.includes(q) ? '' : 'none';
+    });
+  });
+}
+</script>
+{% else %}
+<script>
+// Conversation list search (inbox page, no active room)
+const searchInput = document.getElementById('chatSearch');
+if (searchInput) {
+  searchInput.addEventListener('input', function () {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.gh-room-item').forEach(item => {
+      const name = item.querySelector('.gh-room-name').textContent.toLowerCase();
+      item.style.display = name.includes(q) ? '' : 'none';
+    });
+  });
+}
+</script>
+{% endif %}
+{% endblock %}

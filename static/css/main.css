@@ -1408,3 +1408,572 @@ textarea {
 .gh-empty-state p {
     font-size: .9rem;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ════════════════════════════════════════════
+   Chat system — WhatsApp-inspired layout
+   ════════════════════════════════════════════ */
+
+/* ── Shell (full-height split pane) ──────────── */
+.gh-chat-shell {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--gh-border);
+    border-radius: var(--gh-radius);
+    background: var(--gh-surface);
+}
+
+/* ── Left: Conversation list ─────────────────── */
+.gh-chat-list {
+    width: 320px;
+    min-width: 280px;
+    border-right: 1px solid var(--gh-border);
+    display: flex;
+    flex-direction: column;
+    background: var(--gh-surface);
+    flex-shrink: 0;
+}
+
+.gh-chat-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1rem .75rem;
+    border-bottom: 1px solid var(--gh-border);
+}
+
+.gh-chat-list-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.gh-chat-search-wrap {
+    padding: .5rem .75rem;
+    border-bottom: 1px solid var(--gh-border);
+    position: relative;
+}
+
+.gh-chat-search-icon {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gh-muted);
+    font-size: .85rem;
+}
+
+.gh-chat-search {
+    width: 100%;
+    padding: .4rem .75rem .4rem 2rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--gh-border);
+    font-size: .85rem;
+    background: var(--gh-bg);
+    outline: none;
+    transition: border .15s;
+}
+
+.gh-chat-search:focus {
+    border-color: var(--gh-blue);
+}
+
+.gh-chat-rooms {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.gh-chat-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--gh-muted);
+}
+
+.gh-chat-empty i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: .5rem;
+    opacity: .35;
+}
+
+.gh-chat-empty p {
+    font-size: .85rem;
+}
+
+/* ── Room list item ───────────────────────────── */
+.gh-room-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    text-decoration: none;
+    color: var(--gh-text);
+    cursor: pointer;
+    transition: background .12s;
+    border-bottom: 1px solid var(--gh-border);
+}
+
+.gh-room-item:hover {
+    background: var(--gh-bg);
+}
+
+.gh-room-item.active {
+    background: var(--gh-blue-lt);
+}
+
+.gh-room-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.gh-room-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.gh-room-group-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background: var(--gh-blue);
+    color: #fff;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: .55rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--gh-surface);
+}
+
+.gh-room-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.gh-room-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.gh-room-name {
+    font-weight: 700;
+    font-size: .88rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+.gh-room-time {
+    font-size: .72rem;
+    color: var(--gh-muted);
+    flex-shrink: 0;
+    margin-left: .25rem;
+}
+
+.gh-room-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: .15rem;
+}
+
+.gh-room-last-msg {
+    font-size: .8rem;
+    color: var(--gh-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.gh-room-unread {
+    background: var(--gh-blue);
+    color: #fff;
+    border-radius: 20px;
+    font-size: .68rem;
+    font-weight: 700;
+    padding: .1rem .45rem;
+    flex-shrink: 0;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* ── Right: Chat room ─────────────────────────── */
+.gh-chat-room {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--gh-bg);
+}
+
+.gh-chat-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--gh-muted);
+    text-align: center;
+    gap: .75rem;
+}
+
+.gh-chat-placeholder i {
+    font-size: 3rem;
+    opacity: .25;
+}
+
+.gh-chat-placeholder h4 {
+    font-weight: 700;
+    color: var(--gh-text);
+}
+
+.gh-chat-placeholder p {
+    font-size: .9rem;
+    line-height: 1.7;
+}
+
+/* ── Room header ──────────────────────────────── */
+.gh-chat-room-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    background: var(--gh-surface);
+    border-bottom: 1px solid var(--gh-border);
+    flex-shrink: 0;
+}
+
+.gh-chat-header-profile {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    text-decoration: none;
+    color: var(--gh-text);
+}
+
+.gh-chat-header-avatar-wrap {
+    position: relative;
+}
+
+.gh-chat-header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.gh-chat-group-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gh-blue-lt);
+    color: var(--gh-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.gh-online-dot {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    border-radius: 50%;
+    border: 2px solid var(--gh-surface);
+}
+
+.gh-chat-header-name {
+    display: block;
+    font-weight: 700;
+    font-size: .9rem;
+}
+
+.gh-chat-header-status {
+    display: block;
+    font-size: .75rem;
+    color: var(--gh-muted);
+}
+
+.gh-chat-back-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--gh-muted);
+    cursor: pointer;
+    padding: .25rem .5rem;
+}
+
+/* ── Messages area ────────────────────────────── */
+.gh-messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    scroll-behavior: smooth;
+}
+
+.gh-messages-start {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--gh-muted);
+    text-align: center;
+    flex: 1;
+    gap: .5rem;
+}
+
+.gh-messages-start i {
+    font-size: 2.5rem;
+    opacity: .25;
+}
+
+.gh-messages-start p {
+    font-size: .88rem;
+}
+
+/* ── Message bubbles ──────────────────────────── */
+.gh-msg-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: .5rem;
+    max-width: 75%;
+}
+
+.gh-msg-own {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.gh-msg-other {
+    align-self: flex-start;
+}
+
+.gh-msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-bottom: .15rem;
+}
+
+.gh-msg-content {
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+}
+
+.gh-msg-own .gh-msg-content {
+    align-items: flex-end;
+}
+
+.gh-msg-sender-name {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--gh-blue);
+    margin-left: .25rem;
+}
+
+.gh-msg-bubble {
+    padding: .55rem .85rem;
+    border-radius: 18px;
+    font-size: .9rem;
+    line-height: 1.55;
+    word-break: break-word;
+    max-width: 480px;
+}
+
+.gh-msg-own .gh-msg-bubble {
+    background: var(--gh-blue);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.gh-msg-other .gh-msg-bubble {
+    background: var(--gh-surface);
+    color: var(--gh-text);
+    border: 1px solid var(--gh-border);
+    border-bottom-left-radius: 4px;
+}
+
+.gh-msg-meta {
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    padding: 0 .25rem;
+}
+
+.gh-msg-time {
+    font-size: .7rem;
+    color: var(--gh-muted);
+}
+
+.gh-msg-seen {
+    font-size: .8rem;
+    color: var(--gh-muted);
+    line-height: 1;
+}
+
+/* ── Typing indicator ─────────────────────────── */
+.gh-typing-bar {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .4rem 1rem;
+    background: var(--gh-surface);
+    border-top: 1px solid var(--gh-border);
+    flex-shrink: 0;
+}
+
+.gh-typing-dots {
+    display: flex;
+    gap: 3px;
+}
+
+.gh-typing-dots span {
+    width: 7px;
+    height: 7px;
+    background: var(--gh-muted);
+    border-radius: 50%;
+    animation: gh-bounce .9s infinite;
+}
+
+.gh-typing-dots span:nth-child(2) {
+    animation-delay: .15s;
+}
+
+.gh-typing-dots span:nth-child(3) {
+    animation-delay: .3s;
+}
+
+@keyframes gh-bounce {
+
+    0%,
+    60%,
+    100% {
+        transform: translateY(0)
+    }
+
+    30% {
+        transform: translateY(-6px)
+    }
+}
+
+.gh-typing-text {
+    font-size: .8rem;
+    color: var(--gh-muted);
+}
+
+/* ── Input area ───────────────────────────────── */
+.gh-chat-input-area {
+    padding: .75rem 1rem;
+    background: var(--gh-surface);
+    border-top: 1px solid var(--gh-border);
+    flex-shrink: 0;
+}
+
+.gh-chat-input-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: .5rem;
+    background: var(--gh-bg);
+    border: 1.5px solid var(--gh-border);
+    border-radius: 24px;
+    padding: .5rem .6rem .5rem 1rem;
+    transition: border .15s;
+}
+
+.gh-chat-input-wrap:focus-within {
+    border-color: var(--gh-blue);
+    background: #fff;
+}
+
+.gh-chat-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: .92rem;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+    max-height: 120px;
+    overflow-y: auto;
+    font-family: inherit;
+}
+
+.gh-chat-send-btn {
+    background: var(--gh-blue);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: .95rem;
+    transition: background .15s, opacity .15s;
+}
+
+.gh-chat-send-btn:disabled {
+    background: var(--gh-border);
+    cursor: not-allowed;
+    opacity: .6;
+}
+
+.gh-chat-send-btn:not(:disabled):hover {
+    background: #095ba8;
+}
+
+/* ── Mobile responsiveness ───────────────────── */
+@media (max-width: 700px) {
+    .gh-chat-list {
+        width: 100%;
+        min-width: unset;
+        border-right: none;
+    }
+
+    .gh-chat-room {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 250;
+    }
+
+    .gh-chat-list--hidden-mobile {
+        display: none;
+    }
+
+    .gh-chat-room--active-mobile {
+        display: flex;
+    }
+}

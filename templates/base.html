@@ -65,9 +65,9 @@
              class="gh-nav-link {% if 'connections' in request.resolver_match.app_name %}active{% endif %}">
          <i class="bi bi-people"></i><span>Network</span>
       </a>
-      <a href="#" class="gh-nav-link">
-           <i class="bi bi-chat-dots"></i><span>Messages</span>
-           <span class="gh-badge">3</span>
+      <a href="{% url 'chat:inbox' %}"
+         class="gh-nav-link {% if 'chat' in request.resolver_match.app_name %}active{% endif %}">
+         <i class="bi bi-chat-dots"></i><span>Messages</span>
       </a>
 
       <p class="gh-nav-section">Explore</p>
