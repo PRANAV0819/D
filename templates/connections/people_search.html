@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Search People — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header">
+  <h1>Search people</h1>
+</div>
+
+<div class="gh-card mb-4">
+  <form method="get" class="gh-people-search-form">
+    <i class="bi bi-search"></i>
+    <input type="text" name="q" value="{{ query }}"
+           placeholder="Search by name or email…"
+           class="gh-people-search-input" autofocus/>
+    <button type="submit" class="btn gh-btn-primary">Search</button>
+  </form>
+</div>
+
+{% if query %}
+<p class="text-muted mb-3">
+  {% if results %}{{ results|length }} result{{ results|length|pluralize }} for "{{ query }}"
+  {% else %}No results for "{{ query }}"{% endif %}
+</p>
+
+<div class="gh-people-list">
+  {% for person in results %}
+  <div class="gh-people-list-item gh-card mb-2">
+    <a href="{% url 'accounts:profile_detail' person.pk %}">
+      <img src="{{ person.profile.get_avatar_url }}" class="gh-people-list-avatar" alt="avatar"/>
+    </a>
+    <div class="gh-people-list-info">
+      <a href="{% url 'accounts:profile_detail' person.pk %}" class="gh-people-name">
+        {{ person.get_full_name }}
+      </a>
+      <span class="gh-people-role">{{ person.get_role_display }}
+        {% if person.department %} · {{ person.department.code }}{% endif %}
+        {% if person.college %} · {{ person.college.name }}{% endif %}
+      </span>
+    </div>
+    <div class="gh-people-list-action ms-auto">
+      {% if person.conn_status == 'none' %}
+      <form method="post" action="{% url 'connections:send_request' person.pk %}">
+        {% csrf_token %}
+        <button class="btn gh-btn-primary btn-sm">
+          <i class="bi bi-person-plus me-1"></i>Connect
+        </button>
+      </form>
+      {% elif person.conn_status == 'pending' %}
+      <button class="btn gh-btn-outline btn-sm" disabled>Pending</button>
+      {% elif person.conn_status == 'accepted' %}
+      <span class="badge gh-badge-green"><i class="bi bi-check-lg me-1"></i>Connected</span>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="gh-empty-state">
+    <i class="bi bi-search"></i>
+    <h5>No users found</h5>
+    <p>Try a different name or check the spelling.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

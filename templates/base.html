@@ -61,12 +61,13 @@
       <a href="{% url 'accounts:profile' %}" class="gh-nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
         <i class="bi bi-person-circle"></i><span>My Profile</span>
       </a>
-      <a href="#" class="gh-nav-link">
-        <i class="bi bi-people"></i><span>Network</span>
+      <a href="{% url 'connections:network' %}" 
+             class="gh-nav-link {% if 'connections' in request.resolver_match.app_name %}active{% endif %}">
+         <i class="bi bi-people"></i><span>Network</span>
       </a>
       <a href="#" class="gh-nav-link">
-        <i class="bi bi-chat-dots"></i><span>Messages</span>
-        <span class="gh-badge">3</span>
+           <i class="bi bi-chat-dots"></i><span>Messages</span>
+           <span class="gh-badge">3</span>
       </a>
 
       <p class="gh-nav-section">Explore</p>

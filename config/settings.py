@@ -18,6 +18,8 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     # Local
     'apps.accounts',
+    'apps.social',        # ← add
+    'apps.connections',   # ← add
 ]
 
 MIDDLEWARE = [
@@ -73,7 +75,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Auth redirects
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/accounts/dashboard/'
+LOGIN_REDIRECT_URL = '/feed/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # OTP via console (prints to terminal — swap for SMTP in prod)

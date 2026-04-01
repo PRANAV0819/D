@@ -820,3 +820,591 @@ textarea {
         padding: 1rem;
     }
 }
+
+
+
+
+
+
+
+
+
+
+/* ── Feed layout ─────────────────────────────── */
+.gh-feed-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.25rem;
+    max-width: 980px;
+}
+
+@media (max-width: 900px) {
+    .gh-feed-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .gh-feed-sidebar {
+        display: none;
+    }
+}
+
+/* ── Compose card ─────────────────────────────── */
+.gh-compose-card {
+    padding: 1rem;
+}
+
+.gh-compose-top {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+}
+
+.gh-compose-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.gh-compose-trigger {
+    flex: 1;
+    background: var(--gh-bg);
+    border: 1.5px solid var(--gh-border);
+    border-radius: 22px;
+    padding: .55rem 1rem;
+    text-align: left;
+    color: var(--gh-muted);
+    cursor: text;
+    font-size: .9rem;
+    transition: border .15s;
+}
+
+.gh-compose-trigger:hover {
+    border-color: var(--gh-blue);
+}
+
+.gh-compose-form textarea {
+    width: 100%;
+    border: none;
+    resize: none;
+    font-size: .95rem;
+    padding: .5rem 0;
+    outline: none;
+    min-height: 90px;
+    margin-top: .75rem;
+    background: transparent;
+}
+
+.gh-compose-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--gh-border);
+    padding-top: .75rem;
+    margin-top: .5rem;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.gh-compose-meta {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.gh-compose-attach {
+    cursor: pointer;
+    color: var(--gh-muted);
+    font-size: 1.1rem;
+}
+
+.gh-compose-attach input[type=file] {
+    display: none;
+}
+
+.gh-compose-vis {
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    color: var(--gh-muted);
+    font-size: .82rem;
+}
+
+.gh-compose-vis select {
+    border: none;
+    background: transparent;
+    font-size: .82rem;
+    color: var(--gh-muted);
+    cursor: pointer;
+    padding: 0;
+}
+
+.gh-compose-btns {
+    display: flex;
+    gap: .5rem;
+}
+
+/* ── Post card ────────────────────────────────── */
+.gh-post-card {
+    padding: 1rem 1.25rem;
+}
+
+.gh-post-header {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    margin-bottom: .75rem;
+}
+
+.gh-post-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.gh-post-meta {
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+}
+
+.gh-post-author {
+    font-weight: 700;
+    font-size: .92rem;
+    color: var(--gh-text);
+    text-decoration: none;
+}
+
+.gh-post-author:hover {
+    color: var(--gh-blue);
+    text-decoration: underline;
+}
+
+.gh-post-role {
+    font-size: .78rem;
+    color: var(--gh-muted);
+}
+
+.gh-post-time {
+    font-size: .75rem;
+    color: var(--gh-muted);
+}
+
+.gh-post-body p {
+    font-size: .92rem;
+    line-height: 1.65;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.gh-post-image {
+    margin-top: .75rem;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.gh-post-image img {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+    display: block;
+}
+
+.gh-post-stats {
+    display: flex;
+    align-items: center;
+    padding: .5rem 0;
+    font-size: .82rem;
+    color: var(--gh-muted);
+    border-top: 1px solid var(--gh-border);
+    margin-top: .75rem;
+}
+
+.gh-post-stat-comments {
+    text-decoration: none;
+    color: var(--gh-muted);
+    font-size: .82rem;
+}
+
+.gh-post-stat-comments:hover {
+    text-decoration: underline;
+    color: var(--gh-blue);
+}
+
+.gh-post-actions {
+    display: flex;
+    gap: .25rem;
+    padding-top: .25rem;
+}
+
+.gh-post-action-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    padding: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    font-size: .85rem;
+    color: var(--gh-muted);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background .15s, color .15s;
+}
+
+.gh-post-action-btn:hover {
+    background: var(--gh-bg);
+    color: var(--gh-text);
+}
+
+.gh-post-action-btn.liked {
+    color: var(--gh-blue);
+}
+
+.gh-post-action-btn.liked:hover {
+    background: var(--gh-blue-lt);
+}
+
+/* ── Comments ─────────────────────────────────── */
+.gh-comments-section {
+    border-top: 1px solid var(--gh-border);
+    padding-top: .75rem;
+    margin-top: .5rem;
+}
+
+.gh-comment {
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+    margin-bottom: .65rem;
+}
+
+.gh-comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.gh-comment-bubble {
+    background: var(--gh-bg);
+    border-radius: 12px;
+    padding: .5rem .75rem;
+    flex: 1;
+}
+
+.gh-comment-author {
+    font-weight: 700;
+    font-size: .8rem;
+    display: block;
+    margin-bottom: .15rem;
+}
+
+.gh-comment-text {
+    font-size: .85rem;
+    margin: 0;
+}
+
+.gh-comment-delete {
+    background: none;
+    border: none;
+    color: var(--gh-muted);
+    cursor: pointer;
+    padding: .1rem .3rem;
+    font-size: .82rem;
+    opacity: 0;
+    transition: opacity .15s;
+}
+
+.gh-comment:hover .gh-comment-delete {
+    opacity: 1;
+}
+
+.gh-comment-form {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.gh-comment-input {
+    flex: 1;
+    border: 1.5px solid var(--gh-border);
+    border-radius: 20px;
+    padding: .45rem .9rem;
+    font-size: .88rem;
+    outline: none;
+    background: var(--gh-bg);
+    transition: border .15s;
+}
+
+.gh-comment-input:focus {
+    border-color: var(--gh-blue);
+    background: #fff;
+}
+
+.gh-comment-submit {
+    background: none;
+    border: none;
+    color: var(--gh-blue);
+    font-size: 1.05rem;
+    cursor: pointer;
+    padding: .3rem;
+}
+
+/* ── Feed sidebar cards ───────────────────────── */
+.gh-feed-profile-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.gh-feed-profile-banner {
+    height: 55px;
+    background: linear-gradient(135deg, #0a66c2, #6941c6);
+}
+
+.gh-feed-profile-body {
+    padding: 0 1rem 1rem;
+    text-align: center;
+}
+
+.gh-feed-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    margin-top: -28px;
+    margin-bottom: .5rem;
+}
+
+.gh-feed-name {
+    display: block;
+    font-weight: 700;
+    font-size: .9rem;
+    color: var(--gh-text);
+    text-decoration: none;
+}
+
+.gh-feed-name:hover {
+    color: var(--gh-blue);
+}
+
+.gh-feed-role {
+    display: block;
+    font-size: .78rem;
+    color: var(--gh-muted);
+    margin-bottom: .75rem;
+}
+
+.gh-feed-stats {
+    display: flex;
+    border-top: 1px solid var(--gh-border);
+}
+
+.gh-feed-stat {
+    flex: 1;
+    padding: .6rem .5rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--gh-text);
+}
+
+.gh-feed-stat:first-child {
+    border-right: 1px solid var(--gh-border);
+}
+
+.gh-feed-stat .val {
+    display: block;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.gh-feed-stat .lbl {
+    display: block;
+    font-size: .7rem;
+    color: var(--gh-muted);
+}
+
+.gh-mini-request {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .5rem 0;
+    border-bottom: 1px solid var(--gh-border);
+}
+
+.gh-mini-request:last-child {
+    border-bottom: none;
+}
+
+.gh-mini-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.gh-mini-name {
+    display: block;
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+.gh-mini-sub {
+    display: block;
+    font-size: .75rem;
+    color: var(--gh-muted);
+}
+
+.btn-xs {
+    font-size: .78rem;
+    padding: .2rem .6rem;
+}
+
+/* ── People grid (network page) ───────────────── */
+.gh-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.gh-section-badge {
+    margin-left: .5rem;
+    background: var(--gh-blue);
+    color: #fff;
+    border-radius: 20px;
+    font-size: .72rem;
+    padding: .1rem .5rem;
+    font-weight: 700;
+}
+
+.gh-people-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.gh-people-card {
+    border-radius: var(--gh-radius);
+    border: 1px solid var(--gh-border);
+    overflow: hidden;
+    background: var(--gh-surface);
+    text-align: center;
+}
+
+.gh-people-card-banner {
+    height: 52px;
+    background: linear-gradient(135deg, #0a66c2, #6941c6);
+}
+
+.gh-people-card-body {
+    padding: 0 1rem 1rem;
+}
+
+.gh-people-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    margin-top: -30px;
+    margin-bottom: .4rem;
+}
+
+.gh-people-name {
+    display: block;
+    font-weight: 700;
+    font-size: .88rem;
+    color: var(--gh-text);
+    text-decoration: none;
+}
+
+.gh-people-name:hover {
+    color: var(--gh-blue);
+}
+
+.gh-people-role {
+    display: block;
+    font-size: .76rem;
+    color: var(--gh-muted);
+}
+
+.gh-people-dept {
+    display: block;
+    font-size: .73rem;
+    color: var(--gh-blue);
+    font-weight: 600;
+    margin-top: .15rem;
+}
+
+/* ── People search ────────────────────────────── */
+.gh-people-search-form {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.gh-people-search-form i {
+    color: var(--gh-muted);
+    font-size: 1rem;
+}
+
+.gh-people-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: .95rem;
+    background: transparent;
+}
+
+.gh-people-list-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .85rem 1.25rem;
+}
+
+.gh-people-list-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.gh-people-list-info {
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+}
+
+/* ── Empty state ──────────────────────────────── */
+.gh-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gh-muted);
+}
+
+.gh-empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: .75rem;
+    display: block;
+    opacity: .4;
+}
+
+.gh-empty-state h5 {
+    font-weight: 700;
+    color: var(--gh-text);
+}
+
+.gh-empty-state p {
+    font-size: .9rem;
+}

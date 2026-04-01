@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}My Network — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header">
+  <h1>My Network</h1>
+  <p class="text-muted">Manage your connections and grow your campus network.</p>
+</div>
+
+<!-- Search bar -->
+<div class="gh-card mb-4">
+  <form method="get" action="{% url 'connections:search' %}" class="gh-people-search-form">
+    <i class="bi bi-search"></i>
+    <input type="text" name="q" placeholder="Search students, alumni, teachers by name…"
+           class="gh-people-search-input"/>
+    <button type="submit" class="btn gh-btn-primary">Search</button>
+  </form>
+</div>
+
+<!-- Pending incoming requests -->
+{% if pending_received %}
+<section class="mb-4">
+  <h5 class="gh-section-title">
+    <i class="bi bi-person-plus me-2"></i>
+    Pending requests
+    <span class="gh-section-badge">{{ pending_received.count }}</span>
+  </h5>
+  <div class="gh-people-grid">
+    {% for conn in pending_received %}
+    <div class="gh-people-card">
+      <div class="gh-people-card-banner"></div>
+      <div class="gh-people-card-body">
+        <a href="{% url 'accounts:profile_detail' conn.sender.pk %}">
+          <img src="{{ conn.sender.profile.get_avatar_url }}" class="gh-people-avatar"/>
+        </a>
+        <a href="{% url 'accounts:profile_detail' conn.sender.pk %}" class="gh-people-name">
+          {{ conn.sender.get_full_name }}
+        </a>
+        <span class="gh-people-role">{{ conn.sender.get_role_display }}</span>
+
+        <div class="gh-people-actions mt-2">
+          <form method="post" action="{% url 'connections:accept' conn.pk %}">
+            {% csrf_token %}
+            <button class="btn gh-btn-primary w-100">Accept</button>
+          </form>
+          <form method="post" action="{% url 'connections:reject' conn.pk %}">
+            {% csrf_token %}
+            <button class="btn gh-btn-outline w-100">Ignore</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- My connections -->
+<section class="mb-4">
+  <h5 class="gh-section-title">
+    Your connections
+    <span class="gh-section-badge">{{ accepted.count }}</span>
+  </h5>
+
+  {% if accepted %}
+  <div class="gh-people-grid">
+
+    {% for conn in accepted %}
+
+  {% if conn.sender == user %}
+    
+    {% with other=conn.receiver %}
+      <div class="gh-people-card">
+        <a href="{% url 'accounts:profile_detail' other.pk %}">
+          {{ other.get_full_name }}
+        </a>
+      </div>
+    {% endwith %}
+
+  {% else %}
+
+    {% with other=conn.sender %}
+      <div class="gh-people-card">
+        <a href="{% url 'accounts:profile_detail' other.pk %}">
+          {{ other.get_full_name }}
+        </a>
+      </div>
+    {% endwith %}
+
+  {% endif %}
+
+{% endfor %}
+
+  </div>
+
+  {% else %}
+  <p>No connections yet</p>
+  {% endif %}
+</section>
+
+<!-- Suggestions -->
+{% if suggestions %}
+<section>
+  <h5>People you may know</h5>
+  <div class="gh-people-grid">
+    {% for person in suggestions %}
+    <div class="gh-people-card">
+      <div class="gh-people-card-body">
+
+        <a href="{% url 'accounts:profile_detail' person.pk %}">
+          <img src="{{ person.profile.get_avatar_url }}" class="gh-people-avatar"/>
+        </a>
+
+        <a href="{% url 'accounts:profile_detail' person.pk %}">
+          {{ person.get_full_name }}
+        </a>
+
+        <form method="post" action="{% url 'connections:send_request' person.pk %}">
+          {% csrf_token %}
+          <button class="btn gh-btn-primary">Connect</button>
+        </form>
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

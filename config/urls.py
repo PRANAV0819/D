@@ -5,8 +5,9 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('apps.accounts.urls', namespace='accounts')),
-    # Root redirect → dashboard (or login if not authenticated)
-    path('', RedirectView.as_view(url='/accounts/dashboard/', permanent=False)),
+    path('admin/',        admin.site.urls),
+    path('accounts/',     include('apps.accounts.urls',     namespace='accounts')),
+    path('feed/',         include('apps.social.urls',       namespace='social')),
+    path('connections/',  include('apps.connections.urls',  namespace='connections')), 
+    path('', RedirectView.as_view(url='/feed/', permanent=False)),   # Change the root redirect
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
