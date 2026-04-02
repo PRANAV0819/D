@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}List an Item — GrowthHive{% endblock %}
+
+{% block content %}
+<div style="max-width:600px;">
+  <div class="gh-page-header"><h1>Sell an Item</h1></div>
+  <div class="gh-card">
+    <form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+      {% for field in form %}
+      <div class="mb-3"><label class="gh-label">{{ field.label }}</label>{{ field }}
+      {% if field.errors %}<div class="gh-field-error">{{ field.errors.0 }}</div>{% endif %}</div>
+      {% endfor %}
+      <button type="submit" class="btn gh-btn-primary">List Item</button>
+      <a href="{% url 'marketplace:list' %}" class="btn gh-btn-outline ms-2">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

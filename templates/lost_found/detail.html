@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}{{ item.title }} — Lost & Found{% endblock %}
+
+{% block content %}
+<div style="max-width:700px;">
+  <div class="gh-card">
+    {% if item.image %}<img src="{{ item.image.url }}" style="width:100%;max-height:320px;object-fit:cover;border-radius:8px;margin-bottom:1rem;" alt=""/>{% endif %}
+    <div class="d-flex gap-2 mb-3">
+      <span class="gh-tag {% if item.item_type == 'lost' %}gh-tag-coral{% else %}gh-tag-green{% endif %}">{{ item.get_item_type_display }}</span>
+      <span class="gh-tag gh-tag-gray">{{ item.get_status_display }}</span>
+    </div>
+    <h2 class="h4">{{ item.title }}</h2>
+    {% if item.location %}<p class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ item.location }}</p>{% endif %}
+    <p>{{ item.description }}</p>
+    <hr/>
+    <div class="d-flex align-items-center gap-2">
+      <img src="{{ item.posted_by.profile.get_avatar_url }}" style="width:36px;height:36px;border-radius:50%;" alt=""/>
+      <div class="flex-grow-1">
+        <a href="{% url 'accounts:profile_detail' item.posted_by.pk %}" class="fw-700 text-decoration-none">{{ item.posted_by.get_full_name }}</a>
+        <span class="text-muted d-block small">{{ item.created_at|timesince }} ago</span>
+      </div>
+      {% if item.posted_by != request.user and item.status == 'open' %}
+      <a href="{% url 'chat:create_dm' item.posted_by.pk %}" class="btn gh-btn-primary btn-sm"><i class="bi bi-chat me-1"></i>Contact</a>
+      {% endif %}
+      {% if item.posted_by == request.user and item.status == 'open' %}
+      <form method="post" action="{% url 'lost_found:resolve' item.pk %}">{% csrf_token %}
+        <button class="btn gh-btn-outline btn-sm">Mark Resolved</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

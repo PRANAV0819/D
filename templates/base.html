@@ -53,53 +53,60 @@
 
     <!-- Nav -->
     <nav class="gh-nav">
-      <p class="gh-nav-section">Main</p>
+      <!-- Inside the <nav class="gh-nav"> section, replace ALL links: -->
 
-      <a href="{% url 'accounts:dashboard' %}" class="gh-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-        <i class="bi bi-house-door"></i><span>Dashboard</span>
-      </a>
-      <a href="{% url 'accounts:profile' %}" class="gh-nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-        <i class="bi bi-person-circle"></i><span>My Profile</span>
-      </a>
-      <a href="{% url 'connections:network' %}" 
-             class="gh-nav-link {% if 'connections' in request.resolver_match.app_name %}active{% endif %}">
-         <i class="bi bi-people"></i><span>Network</span>
-      </a>
-      <a href="{% url 'chat:inbox' %}"
-         class="gh-nav-link {% if 'chat' in request.resolver_match.app_name %}active{% endif %}">
-         <i class="bi bi-chat-dots"></i><span>Messages</span>
-      </a>
+<p class="gh-nav-section">Main</p>
+<a href="{% url 'social:feed' %}" class="gh-nav-link {% if 'social' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-house-door"></i><span>Feed</span>
+</a>
+<a href="{% url 'accounts:profile' %}" class="gh-nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+  <i class="bi bi-person-circle"></i><span>My Profile</span>
+</a>
+<a href="{% url 'connections:network' %}" class="gh-nav-link {% if 'connections' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-people"></i><span>Network</span>
+</a>
+<a href="{% url 'chat:inbox' %}" class="gh-nav-link {% if 'chat' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-chat-dots"></i><span>Messages</span>
+</a>
+<a href="{% url 'notifications:list' %}" class="gh-nav-link {% if 'notifications' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-bell"></i><span>Notifications</span>
+</a>
 
-      <p class="gh-nav-section">Explore</p>
+<p class="gh-nav-section">Explore</p>
+<a href="{% url 'jobs:list' %}" class="gh-nav-link {% if 'jobs' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-briefcase"></i><span>Jobs & Internships</span>
+</a>
+<a href="{% url 'scholarships:list' %}" class="gh-nav-link {% if 'scholarships' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-award"></i><span>Scholarships</span>
+</a>
+<a href="{% url 'projects:list' %}" class="gh-nav-link {% if 'projects' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-kanban"></i><span>Projects</span>
+</a>
+<a href="{% url 'events:list' %}" class="gh-nav-link {% if 'events' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-calendar-event"></i><span>Events</span>
+</a>
+<a href="{% url 'mentorship:list' %}" class="gh-nav-link {% if 'mentorship' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-person-badge"></i><span>Mentorship</span>
+</a>
+<a href="{% url 'gamification:leaderboard' %}" class="gh-nav-link {% if 'gamification' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-trophy"></i><span>Leaderboard</span>
+</a>
+<a href="{% url 'analytics:dashboard' %}" class="gh-nav-link {% if 'analytics' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-graph-up"></i><span>Analytics</span>
+</a>
 
-      <a href="#" class="gh-nav-link">
-        <i class="bi bi-briefcase"></i><span>Jobs & Internships</span>
-      </a>
-      <a href="#" class="gh-nav-link">
-        <i class="bi bi-award"></i><span>Scholarships</span>
-      </a>
-      <a href="#" class="gh-nav-link">
-        <i class="bi bi-kanban"></i><span>Projects</span>
-      </a>
-      <a href="#" class="gh-nav-link">
-        <i class="bi bi-calendar-event"></i><span>Events</span>
-      </a>
-      <a href="#" class="gh-nav-link">
-        <i class="bi bi-person-badge"></i><span>Mentorship</span>
-      </a>
-
-      {% if user.is_student %}
-      <p class="gh-nav-section">Students</p>
-      <a href="#" class="gh-nav-link">
-        <i class="bi bi-shop"></i><span>Marketplace</span>
-      </a>
-      <a href="#" class="gh-nav-link">
-        <i class="bi bi-search-heart"></i><span>Lost & Found</span>
-      </a>
-      <a href="#" class="gh-nav-link">
-        <i class="bi bi-book"></i><span>Resources</span>
-      </a>
-      {% endif %}
+{% if user.is_student %}
+<p class="gh-nav-section">Students</p>
+<a href="{% url 'marketplace:list' %}" class="gh-nav-link {% if 'marketplace' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-shop"></i><span>Marketplace</span>
+</a>
+<a href="{% url 'lost_found:list' %}" class="gh-nav-link {% if 'lost_found' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-search-heart"></i><span>Lost & Found</span>
+</a>
+<a href="{% url 'resources:list' %}" class="gh-nav-link {% if 'resources' in request.resolver_match.app_name %}active{% endif %}">
+  <i class="bi bi-book"></i><span>Resources</span>
+</a>
+{% endif %}
 
     </nav>
 

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Analytics — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header"><h1>Your Analytics</h1></div>
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="gh-stat-card gh-stat-blue"><i class="bi bi-people-fill"></i><span class="val">{{ conn_count }}</span><span class="lbl">Connections</span></div></div>
+  <div class="col-6 col-md-3"><div class="gh-stat-card gh-stat-purple"><i class="bi bi-file-post-fill"></i><span class="val">{{ post_count }}</span><span class="lbl">Posts</span></div></div>
+  <div class="col-6 col-md-3"><div class="gh-stat-card gh-stat-amber"><i class="bi bi-star-fill"></i><span class="val">{{ total_pts }}</span><span class="lbl">Points</span></div></div>
+  <div class="col-6 col-md-3"><div class="gh-stat-card gh-stat-teal"><i class="bi bi-fire"></i><span class="val">{{ streak }}</span><span class="lbl">Day Streak</span></div></div>
+</div>
+
+<!-- Activity heatmap -->
+<div class="gh-card mb-4">
+  <h6 class="gh-card-title">Activity Heatmap — last 12 months</h6>
+  <div class="gh-heatmap-wrap">
+    <div class="gh-heatmap">
+      {% for week in weeks %}
+      <div class="gh-heatmap-week">
+        {% for day in week %}
+        <div class="gh-heatmap-day gh-heat-{% if day.count == 0 %}0{% elif day.count <= 2 %}1{% elif day.count <= 5 %}2{% elif day.count <= 9 %}3{% else %}4{% endif %}"
+             title="{{ day.date }}: {{ day.count }} activities"></div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="gh-heatmap-legend">
+      <span class="text-muted small">Less</span>
+      <div class="gh-heat-0 gh-heatmap-day"></div>
+      <div class="gh-heat-1 gh-heatmap-day"></div>
+      <div class="gh-heat-2 gh-heatmap-day"></div>
+      <div class="gh-heat-3 gh-heatmap-day"></div>
+      <div class="gh-heat-4 gh-heatmap-day"></div>
+      <span class="text-muted small">More</span>
+    </div>
+  </div>
+</div>
+
+<!-- Skills -->
+{% if user_skills %}
+<div class="gh-card">
+  <h6 class="gh-card-title">Skill Profile</h6>
+  {% for us in user_skills %}
+  <div class="d-flex align-items-center gap-3 mb-2">
+    <span style="width:120px;font-size:.85rem;font-weight:600;">{{ us.skill.name }}</span>
+    <div class="gh-skill-bar-wrap">
+      <div class="gh-skill-bar"
+           style="width:{% if us.level == 'expert' %}100{% elif us.level == 'advanced' %}75{% elif us.level == 'intermediate' %}50{% else %}25{% endif %}%;
+                  background:{% if us.level == 'expert' %}var(--gh-amber){% elif us.level == 'advanced' %}var(--gh-purple){% elif us.level == 'intermediate' %}var(--gh-blue){% else %}var(--gh-green){% endif %};">
+      </div>
+    </div>
+    <span class="gh-tag gh-skill-{{ us.level }}" style="white-space:nowrap;">{{ us.get_level_display }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

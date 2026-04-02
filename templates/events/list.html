@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Events — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header d-flex align-items-center justify-content-between">
+  <div><h1>Events & Workshops</h1><p class="text-muted">Hackathons, webinars, and opportunities near you.</p></div>
+  <a href="{% url 'events:create' %}" class="btn gh-btn-primary"><i class="bi bi-plus-lg me-1"></i>Create Event</a>
+</div>
+
+<div class="gh-card mb-4">
+  <form method="get" class="gh-filter-form">
+    <select name="type" class="gh-input gh-filter-select">
+      <option value="">All types</option>
+      {% for val, label in type_choices %}<option value="{{ val }}" {% if event_type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn gh-btn-primary">Filter</button>
+    <a href="{% url 'events:list' %}" class="btn gh-btn-outline">Clear</a>
+  </form>
+</div>
+
+<div class="gh-events-grid">
+  {% for event in events %}
+  <div class="gh-event-card gh-card">
+    {% if event.banner %}<img src="{{ event.banner.url }}" class="gh-event-banner" alt="banner"/>{% else %}<div class="gh-event-banner-placeholder"></div>{% endif %}
+    <div class="gh-event-body">
+      <div class="gh-job-tags mb-2">
+        <span class="gh-tag gh-tag-blue">{{ event.get_event_type_display }}</span>
+        {% if event.is_online %}<span class="gh-tag gh-tag-teal">Online</span>{% else %}<span class="gh-tag gh-tag-gray">In-person</span>{% endif %}
+      </div>
+      <h6 class="gh-job-title">{{ event.title }}</h6>
+      <p class="text-muted small mb-2"><i class="bi bi-calendar me-1"></i>{{ event.starts_at|date:"M d, Y — H:i" }}</p>
+      <p class="gh-job-desc">{{ event.description|truncatechars:80 }}</p>
+      <div class="gh-job-footer">
+        <span class="text-muted small">{{ event.registration_count }} registered</span>
+        <div class="d-flex gap-2 align-items-center">
+          {% if event.pk in registered_ids %}<span class="badge gh-badge-green">Registered</span>{% endif %}
+          <a href="{% url 'events:detail' event.pk %}" class="btn gh-btn-primary btn-sm">View</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="gh-empty-state"><i class="bi bi-calendar-event"></i><h5>No upcoming events</h5></div>
+  {% endfor %}
+</div>
+{% endblock %}

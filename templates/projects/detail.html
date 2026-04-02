@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.title }} — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="row g-3" style="max-width:1000px;">
+  <div class="col-lg-8">
+    <!-- Project info -->
+    <div class="gh-card mb-3">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h2 class="h4">{{ project.title }}</h2>
+          <span class="text-muted small">by <a href="{% url 'accounts:profile_detail' project.owner.pk %}">{{ project.owner.get_full_name }}</a></span>
+        </div>
+        <span class="gh-tag gh-tag-{% if project.status == 'open' %}green{% elif project.status == 'active' %}blue{% else %}gray{% endif %}">{{ project.get_status_display }}</span>
+      </div>
+      <p style="white-space:pre-wrap;">{{ project.description }}</p>
+      {% if project.skills_needed %}
+      <div class="gh-skills-wrap mt-2">
+        {% for skill in project.skills_list %}<span class="gh-skill-badge gh-skill-advanced">{{ skill }}</span>{% endfor %}
+      </div>
+      {% endif %}
+      {% if project.github_url %}
+      <a href="{{ project.github_url }}" target="_blank" class="gh-link-row mt-2"><i class="bi bi-github"></i>GitHub Repository</a>
+      {% endif %}
+    </div>
+
+    <!-- Tasks board -->
+    {% if is_member or is_owner %}
+    <div class="gh-card mb-3">
+      <div class="gh-card-header-row mb-3">
+        <h6 class="mb-0"><i class="bi bi-kanban me-2"></i>Task Board</h6>
+      </div>
+      <div class="row g-2">
+        {% for col_status, col_label in task.TaskStatus.choices|default:"" %}{% endfor %}
+        <!-- To Do -->
+        <div class="col-4">
+          <div class="gh-kanban-col">
+            <div class="gh-kanban-header gh-kanban-todo">To Do</div>
+            {% for task in tasks %}{% if task.status == 'todo' %}
+            <div class="gh-kanban-card">
+              <p class="mb-1 fw-600 small">{{ task.title }}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="gh-tag gh-tag-{% if task.priority == 'high' %}coral{% elif task.priority == 'medium' %}amber{% else %}gray{% endif %} mt-0">{{ task.priority }}</span>
+                <form method="post" action="{% url 'projects:task_status' task.pk %}">{% csrf_token %}
+                  <input type="hidden" name="status" value="doing"/>
+                  <button class="btn btn-link btn-sm p-0 text-muted">→</button>
+                </form>
+              </div>
+            </div>
+            {% endif %}{% endfor %}
+          </div>
+        </div>
+        <!-- In Progress -->
+        <div class="col-4">
+          <div class="gh-kanban-col">
+            <div class="gh-kanban-header gh-kanban-doing">In Progress</div>
+            {% for task in tasks %}{% if task.status == 'doing' %}
+            <div class="gh-kanban-card">
+              <p class="mb-1 fw-600 small">{{ task.title }}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted" style="font-size:.72rem;">{% if task.assigned_to %}{{ task.assigned_to.first_name }}{% endif %}</span>
+                <form method="post" action="{% url 'projects:task_status' task.pk %}">{% csrf_token %}
+                  <input type="hidden" name="status" value="done"/>
+                  <button class="btn btn-link btn-sm p-0 text-muted">✓</button>
+                </form>
+              </div>
+            </div>
+            {% endif %}{% endfor %}
+          </div>
+        </div>
+        <!-- Done -->
+        <div class="col-4">
+          <div class="gh-kanban-col">
+            <div class="gh-kanban-header gh-kanban-done">Done</div>
+            {% for task in tasks %}{% if task.status == 'done' %}
+            <div class="gh-kanban-card gh-kanban-card--done">
+              <p class="mb-0 small" style="text-decoration:line-through;opacity:.6;">{{ task.title }}</p>
+            </div>
+            {% endif %}{% endfor %}
+          </div>
+        </div>
+      </div>
+      <!-- Add task -->
+      <div class="mt-3 border-top pt-3">
+        <h6 class="small fw-700 mb-2">Add task</h6>
+        <form method="post" action="{% url 'projects:add_task' project.pk %}" class="d-flex gap-2 flex-wrap">
+          {% csrf_token %}
+          <input type="text" name="title" placeholder="Task title…" class="gh-input" style="flex:1;" required/>
+          {{ task_form.priority }}
+          {{ task_form.assigned_to }}
+          <button type="submit" class="btn gh-btn-primary btn-sm">Add</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <!-- Join / apply -->
+    {% if not is_member and not is_owner and project.status == 'open' %}
+    <div class="gh-card mb-3">
+      <h6 class="gh-card-title">Join this project</h6>
+      <form method="post" action="{% url 'projects:join' project.pk %}">
+        {% csrf_token %}
+        <div class="mb-2"><input type="text" name="role" class="gh-input" placeholder="Your role (e.g. Backend Dev)"/></div>
+        <button type="submit" class="btn gh-btn-primary w-100">Apply to Join</button>
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- Members -->
+    <div class="gh-card mb-3">
+      <h6 class="gh-card-title"><i class="bi bi-people me-2"></i>Members ({{ project.member_count }}/{{ project.max_members }})</h6>
+      {% for m in members %}
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <img src="{{ m.user.profile.get_avatar_url }}" style="width:34px;height:34px;border-radius:50%;" alt=""/>
+        <div>
+          <a href="{% url 'accounts:profile_detail' m.user.pk %}" class="gh-people-name d-block" style="font-size:.85rem;">{{ m.user.get_full_name }}</a>
+          <span class="text-muted" style="font-size:.75rem;">{{ m.role|default:"Member" }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pending applicants (owner only) -->
+    {% if is_owner and pending %}
+    <div class="gh-card">
+      <h6 class="gh-card-title">Pending Applications</h6>
+      {% for m in pending %}
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <img src="{{ m.user.profile.get_avatar_url }}" style="width:32px;height:32px;border-radius:50%;" alt=""/>
+        <div class="flex-grow-1">
+          <span class="fw-700 small">{{ m.user.get_full_name }}</span>
+          <span class="text-muted d-block" style="font-size:.73rem;">{{ m.role }}</span>
+        </div>
+        <form method="post" action="{% url 'projects:approve' project.pk m.pk %}">{% csrf_token %}
+          <button class="btn gh-btn-primary btn-sm">Approve</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}My Listings — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header d-flex align-items-center justify-content-between">
+  <h1>My Listings</h1>
+  <a href="{% url 'marketplace:post' %}" class="btn gh-btn-primary">+ Sell Item</a>
+</div>
+<div class="row g-3">
+  {% for item in items %}
+  <div class="col-md-4">
+    <div class="gh-card">
+      {% if item.image %}<img src="{{ item.image.url }}" style="width:100%;height:160px;object-fit:cover;border-radius:8px;margin-bottom:.75rem;" alt=""/>{% endif %}
+      <h6>{{ item.title }}</h6>
+      <p class="gh-market-price mb-1">₹{{ item.price }}</p>
+      <span class="gh-tag gh-tag-{% if item.status == 'active' %}green{% elif item.status == 'reserved' %}amber{% else %}gray{% endif %}">{{ item.get_status_display }}</span>
+      {% if item.status == 'active' %}
+      <form method="post" action="{% url 'marketplace:sold' item.pk %}" class="mt-2">{% csrf_token %}
+        <button class="btn gh-btn-outline w-100 btn-sm">Mark as Sold</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="gh-empty-state"><i class="bi bi-shop"></i><h5>No listings yet</h5></div>
+  {% endfor %}
+</div>
+{% endblock %}

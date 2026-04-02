@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Scholarships — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header d-flex align-items-center justify-content-between">
+  <div><h1>Scholarships</h1><p class="text-muted">Find funding opportunities for your education.</p></div>
+  <a href="{% url 'scholarships:post' %}" class="btn gh-btn-primary"><i class="bi bi-plus-lg me-1"></i>Post Scholarship</a>
+</div>
+
+<div class="gh-card mb-4">
+  <form method="get" class="gh-filter-form">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search…" class="gh-input gh-filter-search"/>
+    <select name="type" class="gh-input gh-filter-select">
+      <option value="">All types</option>
+      {% for val, label in type_choices %}
+      <option value="{{ val }}" {% if stype == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn gh-btn-primary">Filter</button>
+    <a href="{% url 'scholarships:list' %}" class="btn gh-btn-outline">Clear</a>
+  </form>
+</div>
+
+<div class="gh-job-grid">
+  {% for s in scholarships %}
+  <div class="gh-job-card gh-card">
+    <div class="gh-job-card-header">
+      <div class="gh-job-company-icon" style="background:var(--gh-purple);color:#fff;">{{ s.provider|first|upper }}</div>
+      <div>
+        <h6 class="gh-job-title">{{ s.title }}</h6>
+        <span class="gh-job-company">{{ s.provider }}</span>
+      </div>
+    </div>
+    <div class="gh-job-tags mt-2">
+      <span class="gh-tag gh-tag-purple">{{ s.get_scholarship_type_display }}</span>
+      {% if s.amount %}<span class="gh-tag gh-tag-amber">{{ s.amount }}</span>{% endif %}
+      {% if s.deadline %}<span class="gh-tag gh-tag-coral">Deadline: {{ s.deadline }}</span>{% endif %}
+    </div>
+    <p class="gh-job-desc mt-2">{{ s.description|truncatechars:100 }}</p>
+    <div class="gh-job-footer">
+      <span class="text-muted small">{{ s.created_at|timesince }} ago</span>
+      <a href="{% url 'scholarships:detail' s.pk %}" class="btn gh-btn-primary btn-sm">View</a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="gh-empty-state"><i class="bi bi-award"></i><h5>No scholarships yet</h5></div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -5,10 +5,21 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    path('admin/',       admin.site.urls),
-    path('accounts/',    include('apps.accounts.urls',    namespace='accounts')),
-    path('feed/',        include('apps.social.urls',      namespace='social')),
-    path('connections/', include('apps.connections.urls', namespace='connections')),
-    path('chat/',        include('apps.chat.urls',        namespace='chat')),    # ← add
-    path('',             RedirectView.as_view(url='/feed/', permanent=False)),
+    path('admin/',          admin.site.urls),
+    path('accounts/',       include('apps.accounts.urls',       namespace='accounts')),
+    path('feed/',           include('apps.social.urls',         namespace='social')),
+    path('connections/',    include('apps.connections.urls',    namespace='connections')),
+    path('chat/',           include('apps.chat.urls',           namespace='chat')),
+    path('jobs/',           include('apps.jobs.urls',           namespace='jobs')),
+    path('mentorship/',     include('apps.mentorship.urls',     namespace='mentorship')),
+    path('projects/',       include('apps.projects.urls',       namespace='projects')),
+    path('scholarships/',   include('apps.scholarships.urls',   namespace='scholarships')),
+    path('marketplace/',    include('apps.marketplace.urls',    namespace='marketplace')),
+    path('lost-found/',     include('apps.lost_found.urls',     namespace='lost_found')),
+    path('resources/',      include('apps.resources.urls',      namespace='resources')),
+    path('events/',         include('apps.events.urls',         namespace='events')),
+    path('notifications/',  include('apps.notifications.urls',  namespace='notifications')),
+    path('gamification/',   include('apps.gamification.urls',   namespace='gamification')),
+    path('analytics/',      include('apps.analytics.urls',      namespace='analytics')),
+    path('',                RedirectView.as_view(url='/feed/', permanent=False)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

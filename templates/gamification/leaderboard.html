@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header"><h1>Leaderboard & Achievements</h1></div>
+
+<div class="row g-3">
+  <!-- Leaderboard -->
+  <div class="col-lg-7">
+    <div class="gh-card">
+      <h6 class="gh-card-title"><i class="bi bi-trophy-fill me-2" style="color:var(--gh-amber);"></i>Top Members</h6>
+      {% for user in users %}
+        {{ forloop.counter }}. {{ user.username }}
+      {% endfor %}
+      {% for user in top_users %}
+      <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+        <span class="fw-800" style="width:28px;color:{% if forloop.counter == 1 %}#f59e0b{% elif forloop.counter == 2 %}#9ca3af{% elif forloop.counter == 3 %}#cd7c2f{% else %}var(--gh-muted){% endif %};">
+          #{{ forloop.counter }}
+        </span>
+        <img src="{{ user.profile.get_avatar_url }}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" alt=""/>
+        <div class="flex-grow-1">
+          <a href="{% url 'accounts:profile_detail' user.pk %}" class="fw-700 text-decoration-none small">{{ user.get_full_name }}</a>
+          <span class="text-muted d-block" style="font-size:.72rem;">{{ user.get_role_display }}</span>
+        </div>
+        <span class="fw-800" style="color:var(--gh-amber);">{{ user.profile.points }} pts</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Badges & Activity -->
+  <div class="col-lg-5">
+    <div class="gh-card mb-3">
+      <h6 class="gh-card-title"><i class="bi bi-award-fill me-2" style="color:var(--gh-amber);"></i>Badges</h6>
+      <div class="gh-skills-wrap">
+        {% for badge in all_badges %}
+        <span class="gh-skill-badge {% if badge.pk in my_badge_ids %}{{ badge.color }}{% else %}gh-skill-beginner{% endif %}" style="{% if badge.pk not in my_badge_ids %}opacity:.35;{% endif %}">
+          <i class="bi {{ badge.icon }}"></i> {{ badge.name }}
+        </span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="gh-card">
+      <h6 class="gh-card-title">Recent Activity</h6>
+      {% for act in recent_activity %}
+      <div class="d-flex align-items-center gap-2 py-1 border-bottom">
+        <span class="text-muted small flex-grow-1">{{ act.get_action_display }}</span>
+        <span class="gh-tag gh-tag-amber">+{{ act.points_earned }} pts</span>
+        <span class="text-muted" style="font-size:.72rem;">{{ act.created_at|timesince }} ago</span>
+      </div>
+      {% empty %}
+      <p class="text-muted small mb-0">No activity logged yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

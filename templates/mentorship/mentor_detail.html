@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}{{ mentor_user.get_full_name }} — Mentor{% endblock %}
+
+{% block content %}
+<div class="row g-3" style="max-width:900px;">
+  <div class="col-lg-7">
+    <div class="gh-card mb-3">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <img src="{{ mentor_user.profile.get_avatar_url }}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;" alt=""/>
+        <div>
+          <h2 class="h4 mb-0">{{ mentor_user.get_full_name }}</h2>
+          <span class="text-muted">{{ mentor_user.get_role_display }} · {{ mentor_profile.experience }} years experience</span>
+        </div>
+      </div>
+      {% if mentor_profile.bio %}<p>{{ mentor_profile.bio }}</p>{% endif %}
+      <h6 class="mt-3">Areas of expertise</h6>
+      <div class="gh-skills-wrap">
+        {% for exp in mentor_profile.expertise_list %}
+        <span class="gh-skill-badge gh-skill-advanced">{{ exp }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="gh-card">
+      {% if mentor_user == request.user %}
+      <a href="{% url 'mentorship:become' %}" class="btn gh-btn-outline w-100">Edit mentor profile</a>
+      {% elif existing %}
+        {% if existing.status == 'pending' %}
+        <div class="alert alert-info">Request pending…</div>
+        {% elif existing.status == 'accepted' %}
+        <div class="alert alert-success">You're connected as mentee!</div>
+        <a href="{% url 'mentorship:book' existing.pk %}" class="btn gh-btn-primary w-100 mt-2">Book a session</a>
+        {% elif existing.status == 'rejected' %}
+        <div class="alert alert-danger">Request was declined.</div>
+        {% endif %}
+      {% else %}
+      <h6 class="gh-card-title">Request Mentorship</h6>
+      <form method="post" action="{% url 'mentorship:send_request' mentor_user.pk %}">
+        {% csrf_token %}
+        <div class="mb-3">{{ form.message }}</div>
+        <button type="submit" class="btn gh-btn-primary w-100">Send Request</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

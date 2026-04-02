@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Jobs & Internships — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header d-flex align-items-center justify-content-between">
+  <div>
+    <h1>Jobs & Internships</h1>
+    <p class="text-muted">Browse opportunities posted by alumni, teachers, and students.</p>
+  </div>
+  <a href="{% url 'jobs:post' %}" class="btn gh-btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Post a Job
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="gh-card mb-4">
+  <form method="get" class="gh-filter-form">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search title, company…" class="gh-input gh-filter-search"/>
+    <select name="type" class="gh-input gh-filter-select">
+      <option value="">All types</option>
+      {% for val, label in job_type_choices %}
+      <option value="{{ val }}" {% if job_type == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="mode" class="gh-input gh-filter-select">
+      <option value="">All modes</option>
+      {% for val, label in work_mode_choices %}
+      <option value="{{ val }}" {% if work_mode == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn gh-btn-primary">Filter</button>
+    <a href="{% url 'jobs:list' %}" class="btn gh-btn-outline">Clear</a>
+  </form>
+</div>
+
+<!-- Job cards -->
+<div class="gh-job-grid">
+  {% for job in jobs %}
+  <div class="gh-job-card gh-card">
+    <div class="gh-job-card-header">
+      <div class="gh-job-company-icon">{{ job.company|first|upper }}</div>
+      <div>
+        <h6 class="gh-job-title">{{ job.title }}</h6>
+        <span class="gh-job-company">{{ job.company }}</span>
+      </div>
+    </div>
+    <div class="gh-job-tags mt-2">
+      <span class="gh-tag gh-tag-blue">{{ job.get_job_type_display }}</span>
+      <span class="gh-tag gh-tag-teal">{{ job.get_work_mode_display }}</span>
+      {% if job.location %}<span class="gh-tag gh-tag-gray"><i class="bi bi-geo-alt me-1"></i>{{ job.location }}</span>{% endif %}
+    </div>
+    {% if job.salary %}
+    <p class="gh-job-salary mt-2"><i class="bi bi-currency-rupee"></i> {{ job.salary }}</p>
+    {% endif %}
+    <p class="gh-job-desc mt-1">{{ job.description|truncatechars:120 }}</p>
+    <div class="gh-job-footer">
+      <span class="text-muted small">{{ job.created_at|timesince }} ago · {{ job.application_count }} applied</span>
+      <div class="d-flex gap-2">
+        {% if job.pk in applied_ids %}
+        <span class="badge gh-badge-green">Applied</span>
+        {% endif %}
+        <a href="{% url 'jobs:detail' job.pk %}" class="btn gh-btn-primary btn-sm">View</a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="gh-empty-state">
+    <i class="bi bi-briefcase"></i>
+    <h5>No jobs found</h5>
+    <p>Try different filters or be the first to post one!</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

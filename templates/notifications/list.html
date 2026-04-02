@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header"><h1>Notifications</h1></div>
+
+<div style="max-width:700px;">
+  {% for notif in notifications %}
+  <a href="{% url 'notifications:mark_read' notif.pk %}"
+     class="gh-notif-item gh-card mb-2 d-flex gap-3 text-decoration-none {% if not notif.is_read %}gh-notif-unread{% endif %}">
+    <div class="gh-notif-icon gh-notif-{{ notif.notif_type }}">
+      <i class="bi bi-{% if notif.notif_type == 'connection' %}person-plus{% elif notif.notif_type == 'message' %}chat-dots{% elif notif.notif_type == 'job' %}briefcase{% elif notif.notif_type == 'mentorship' %}person-badge{% elif notif.notif_type == 'project' %}kanban{% elif notif.notif_type == 'event' %}calendar-event{% else %}bell{% endif %}-fill"></i>
+    </div>
+    <div class="flex-grow-1">
+      <p class="fw-700 mb-0 small">{{ notif.title }}</p>
+      <p class="text-muted mb-0 small">{{ notif.message }}</p>
+      <span class="text-muted" style="font-size:.72rem;">{{ notif.created_at|timesince }} ago</span>
+    </div>
+    {% if not notif.is_read %}<span class="gh-notif-dot-sm"></span>{% endif %}
+  </a>
+  {% empty %}
+  <div class="gh-empty-state"><i class="bi bi-bell"></i><h5>All caught up!</h5><p>No notifications yet.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}

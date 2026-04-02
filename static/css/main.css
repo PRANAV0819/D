@@ -1977,3 +1977,466 @@ textarea {
         display: flex;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ── Jobs / Scholarships / Events ─────────── */
+.gh-job-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.gh-job-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.gh-job-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+}
+
+.gh-job-company-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: var(--gh-blue-lt);
+    color: var(--gh-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.gh-job-company-icon--lg {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    font-size: 1.5rem;
+}
+
+.gh-job-title {
+    font-size: .92rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.gh-job-company {
+    font-size: .8rem;
+    color: var(--gh-muted);
+}
+
+.gh-job-desc {
+    font-size: .83rem;
+    color: var(--gh-muted);
+    line-height: 1.5;
+    flex: 1;
+    margin: 0;
+}
+
+.gh-job-salary {
+    font-size: .82rem;
+    color: var(--gh-green);
+    font-weight: 600;
+    margin: 0;
+}
+
+.gh-job-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--gh-border);
+    margin-top: .75rem;
+    padding-top: .6rem;
+}
+
+.gh-job-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+}
+
+/* ── Tags ─────────────────────────────────── */
+.gh-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: .2rem .55rem;
+    border-radius: 20px;
+    font-size: .75rem;
+    font-weight: 600;
+}
+
+.gh-tag-blue {
+    background: var(--gh-blue-lt);
+    color: var(--gh-blue);
+}
+
+.gh-tag-teal {
+    background: #e0f7fa;
+    color: var(--gh-teal);
+}
+
+.gh-tag-amber {
+    background: #fffbeb;
+    color: var(--gh-amber);
+}
+
+.gh-tag-coral {
+    background: #fff0ed;
+    color: #c0392b;
+}
+
+.gh-tag-green {
+    background: #f0fdf4;
+    color: var(--gh-green);
+}
+
+.gh-tag-purple {
+    background: #f4f0ff;
+    color: var(--gh-purple);
+}
+
+.gh-tag-gray {
+    background: var(--gh-bg);
+    color: var(--gh-muted);
+}
+
+/* ── Filters ──────────────────────────────── */
+.gh-filter-form {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+}
+
+.gh-filter-search {
+    flex: 1;
+    min-width: 200px;
+}
+
+.gh-filter-select {
+    width: auto;
+    flex: 0 0 auto;
+}
+
+/* ── Marketplace ─────────────────────────── */
+.gh-marketplace-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.gh-market-card {
+    overflow: hidden;
+}
+
+.gh-market-img {
+    height: 160px;
+    background: var(--gh-bg);
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: .75rem;
+}
+
+.gh-market-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gh-market-img-placeholder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: var(--gh-muted);
+    opacity: .35;
+}
+
+.gh-market-body {
+    padding: 0;
+}
+
+.gh-market-title {
+    font-size: .88rem;
+    font-weight: 700;
+    margin-bottom: .25rem;
+    color: var(--gh-text);
+}
+
+.gh-market-price {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--gh-green);
+}
+
+/* ── Resources ───────────────────────────── */
+.gh-resource-icon {
+    width: 38px;
+    height: 38px;
+    background: #fff0f0;
+    color: #ef4444;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+/* ── Events ───────────────────────────────── */
+.gh-events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.gh-event-card {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.gh-event-banner {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+}
+
+.gh-event-banner-placeholder {
+    height: 80px;
+    background: linear-gradient(135deg, #0a66c2, #6941c6);
+}
+
+.gh-event-body {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Notifications ───────────────────────── */
+.gh-notif-item {
+    padding: .85rem 1rem;
+}
+
+.gh-notif-unread {
+    background: #f0f7ff !important;
+    border-left: 3px solid var(--gh-blue);
+}
+
+.gh-notif-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .9rem;
+    flex-shrink: 0;
+}
+
+.gh-notif-connection {
+    background: var(--gh-blue-lt);
+    color: var(--gh-blue);
+}
+
+.gh-notif-message {
+    background: #e0f7fa;
+    color: var(--gh-teal);
+}
+
+.gh-notif-job {
+    background: #fffbeb;
+    color: var(--gh-amber);
+}
+
+.gh-notif-mentorship {
+    background: #f4f0ff;
+    color: var(--gh-purple);
+}
+
+.gh-notif-project {
+    background: #f0fdf4;
+    color: var(--gh-green);
+}
+
+.gh-notif-event {
+    background: #fff0ed;
+    color: #c0392b;
+}
+
+.gh-notif-system {
+    background: var(--gh-bg);
+    color: var(--gh-muted);
+}
+
+.gh-notif-dot-sm {
+    width: 8px;
+    height: 8px;
+    background: var(--gh-blue);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: .25rem;
+}
+
+/* ── Heatmap ──────────────────────────────── */
+.gh-heatmap-wrap {
+    overflow-x: auto;
+}
+
+.gh-heatmap {
+    display: flex;
+    gap: 3px;
+    padding-bottom: .5rem;
+}
+
+.gh-heatmap-week {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.gh-heatmap-day {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.gh-heat-0 {
+    background: var(--gh-border);
+}
+
+.gh-heat-1 {
+    background: #c8e6c9;
+}
+
+.gh-heat-2 {
+    background: #66bb6a;
+}
+
+.gh-heat-3 {
+    background: #2e7d32;
+}
+
+.gh-heat-4 {
+    background: #1b5e20;
+}
+
+.gh-heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: .5rem;
+}
+
+/* ── Skill bars (Analytics) ───────────────── */
+.gh-skill-bar-wrap {
+    flex: 1;
+    height: 8px;
+    background: var(--gh-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.gh-skill-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .4s;
+}
+
+/* ── Kanban ───────────────────────────────── */
+.gh-kanban-col {
+    background: var(--gh-bg);
+    border-radius: 8px;
+    padding: .5rem;
+    min-height: 100px;
+}
+
+.gh-kanban-header {
+    font-size: .78rem;
+    font-weight: 700;
+    padding: .35rem .5rem;
+    border-radius: 6px;
+    margin-bottom: .5rem;
+    text-align: center;
+}
+
+.gh-kanban-todo {
+    background: #fff0ed;
+    color: #c0392b;
+}
+
+.gh-kanban-doing {
+    background: var(--gh-blue-lt);
+    color: var(--gh-blue);
+}
+
+.gh-kanban-done {
+    background: #f0fdf4;
+    color: var(--gh-green);
+}
+
+.gh-kanban-card {
+    background: var(--gh-surface);
+    border: 1px solid var(--gh-border);
+    border-radius: 6px;
+    padding: .5rem .65rem;
+    margin-bottom: .4rem;
+}
+
+.gh-kanban-card--done {
+    opacity: .65;
+}
+
+/* ── Utility ──────────────────────────────── */
+.fw-600 {
+    font-weight: 600;
+}
+
+.fw-700 {
+    font-weight: 700;
+}
+
+.fw-800 {
+    font-weight: 800;
+}
+
+.gh-tag-purple {
+    background: #f4f0ff;
+    color: var(--gh-purple);
+}

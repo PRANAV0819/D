@@ -7,7 +7,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
-    'daphne',    
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -17,13 +17,28 @@ INSTALLED_APPS = [
     # Third-party
     'crispy_forms',
     'crispy_bootstrap5',
-    'channels', 
+    'channels',
     # Local
     'apps.accounts',
-    'apps.social',        # ← add
-    'apps.connections',   # ← add
+    'apps.social',
+    'apps.connections',
     'apps.chat',
+    'apps.jobs',
+    'apps.mentorship',
+    'apps.projects',
+    'apps.scholarships',
+    'apps.marketplace',
+    'apps.lost_found',
+    'apps.resources',
+    'apps.events',
+    'apps.notifications',
+    'apps.gamification',
+    'apps.analytics',
 ]
+
+# Resume builder (PDF generation)
+# pip install weasyprint
+WEASYPRINT_BASEURL = '/'
 
 # ── ASGI app (replaces WSGI for WebSocket support) ──
 ASGI_APPLICATION = 'config.asgi.application'
