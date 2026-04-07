@@ -126,12 +126,9 @@
 
     <!-- Topbar -->
     <div class="gh-topbar">
-      <div class="gh-search-wrap">
-        <i class="bi bi-search gh-search-icon"></i>
-        <input type="text" class="gh-search-input" placeholder="Search people, jobs, projects…"/>
-      </div>
+      
       <div class="gh-topbar-actions">
-        <button class="gh-icon-btn" title="Notifications">
+        <button class="gh-icon-btn" id="notifBtn" title="Notifications">
           <i class="bi bi-bell"></i>
           <span class="gh-notif-dot"></span>
         </button>
@@ -140,6 +137,8 @@
         </a>
       </div>
     </div>
+
+    
 
     <!-- Flash messages -->
     {% if messages %}

@@ -21,3 +21,4 @@ document.querySelectorAll('.alert.fade.show').forEach(el => {
         bs && bs.close();
     }, 4000);
 });
+
