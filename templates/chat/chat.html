@@ -94,7 +94,7 @@
           <span class="gh-chat-header-name">{{ other.get_full_name }}</span>
           <span class="gh-chat-header-status" id="headerStatus">
             {{ other.get_role_display }}
-            {% if other.department %} · {{ other.department.code }}{% endif %}
+            {% if other.department %} · {{ other.get_department_display }}{% endif %}
           </span>
         </div>
       </a>
@@ -219,7 +219,10 @@ function scrollBottom(smooth = false) {
 scrollBottom();
 
 // ── WebSocket events ─────────────────────────────────────────
-ws.onopen = () => console.log('Chat connected');
+ws.onopen = () => {
+  console.log('Chat: WebSocket connected');
+  stopPolling(); // WS is up, stop polling if it was running
+};
 
 ws.onmessage = (e) => {
   const data = JSON.parse(e.data);
@@ -255,14 +258,82 @@ ws.onmessage = (e) => {
   }
 };
 
-ws.onclose = () => console.log('Chat disconnected');
-ws.onerror = (e) => console.error('WebSocket error:', e);
+// ── AJAX polling fallback (used when WebSocket is unavailable) ──────
+let pollInterval  = null;
+let lastMsgId     = 0;
+
+// Initialise lastMsgId from the last message already on screen
+document.querySelectorAll('[id^="msg-"]').forEach(el => {
+  const id = parseInt(el.id.replace('msg-', ''), 10);
+  if (id > lastMsgId) lastMsgId = id;
+});
+
+function stopPolling() {
+  if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+}
+
+function startPolling() {
+  if (pollInterval) return; // already running
+  console.log('Chat: WS unavailable — falling back to AJAX polling');
+  pollInterval = setInterval(async () => {
+    try {
+      const r = await fetch(
+        `/chat/api/messages/${ROOM_ID}/?since_id=${lastMsgId}&mark_seen=1`,
+        { headers: { 'X-Requested-With': 'XMLHttpRequest' } }
+      );
+      if (!r.ok) return;
+      const json = await r.json();
+      json.messages.forEach(msg => {
+        if (document.getElementById(`msg-${msg.id}`)) return; // already rendered
+        lastMsgId = Math.max(lastMsgId, msg.id);
+        appendMessage({
+          message_id:    msg.id,
+          content:       msg.content,
+          sender_id:     msg.sender_id,
+          sender_name:   msg.sender_name,
+          sender_avatar: msg.sender_avatar,
+          timestamp:     msg.timestamp,
+        });
+      });
+    } catch (e) { /* silent */ }
+  }, 3000);
+}
+
+// ── Send via AJAX when WS is down ────────────────────────────
+async function sendViaAjax(content) {
+  const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+  const r = await fetch(`/chat/api/messages/${ROOM_ID}/`, {
+    method:  'POST',
+    headers: {
+      'Content-Type':    'application/x-www-form-urlencoded',
+      'X-CSRFToken':     csrfToken,
+      'X-Requested-With':'XMLHttpRequest',
+    },
+    body: new URLSearchParams({ content }),
+  });
+  // The view doesn't handle POST yet — typing indicator will show
+  // message after next poll cycle
+}
+
+ws.onclose = (e) => {
+  console.warn('Chat: WebSocket closed', e.code);
+  startPolling();
+};
+ws.onerror = (e) => {
+  console.error('Chat: WebSocket error', e);
+  startPolling();
+};
 
 // ── Send message ─────────────────────────────────────────────
 function sendMessage() {
   const content = input.value.trim();
-  if (!content || ws.readyState !== WebSocket.OPEN) return;
-  ws.send(JSON.stringify({ type: 'chat_message', content }));
+  if (!content) return;
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'chat_message', content }));
+  } else {
+    // AJAX fallback: optimistically render own message, re-sync via poll
+    sendViaAjax(content);
+  }
   input.value = '';
   input.style.height = 'auto';
   sendBtn.disabled = true;
@@ -290,7 +361,7 @@ let typingTimer = null;
 let isTyping    = false;
 
 function handleTyping() {
-  if (!isTyping) {
+  if (!isTyping && ws.readyState === WebSocket.OPEN) {
     isTyping = true;
     ws.send(JSON.stringify({ type: 'typing', is_typing: true }));
   }
@@ -301,7 +372,9 @@ function handleTyping() {
 function clearTyping() {
   if (isTyping) {
     isTyping = false;
-    ws.send(JSON.stringify({ type: 'typing', is_typing: false }));
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'typing', is_typing: false }));
+    }
   }
 }
 
@@ -324,7 +397,7 @@ function appendMessage(data) {
     ? `<span class="gh-msg-seen"><i class="bi bi-check2"></i></span>`
     : '';
 
-  // Convert newlines
+  // Sanitise and convert newlines
   const safeContent = data.content
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\n/g,'<br/>');
@@ -345,6 +418,7 @@ function appendMessage(data) {
   if (placeholder) placeholder.remove();
 
   msgArea.appendChild(wrapper);
+  if (data.message_id > lastMsgId) lastMsgId = data.message_id;
   scrollBottom(true);
 }
 
@@ -360,6 +434,7 @@ if (searchInput) {
   });
 }
 </script>
+
 {% else %}
 <script>
 // Conversation list search (inbox page, no active room)

@@ -1,7 +1,9 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Max
+from django.db.models import Max, Prefetch
 
 from apps.accounts.decorators import verified_required
 from apps.accounts.models import User
@@ -11,25 +13,58 @@ from .models import ChatRoom, RoomMember, Message
 # ── Helper: build annotated room list for the sidebar ────────────────
 
 def build_room_list(user):
-    room_ids = RoomMember.objects.filter(user=user).values_list('room_id', flat=True)
-    rooms    = (
+    """
+    Returns a list of dicts for the sidebar. Optimised: avoids N+1 by
+    prefetching memberships and using annotated querysets.
+    """
+    # Prefetch all memberships for this user in a single query
+    memberships = {
+        rm.room_id: rm
+        for rm in RoomMember.objects.filter(user=user).select_related('room')
+    }
+    room_ids = list(memberships.keys())
+
+    rooms = (
         ChatRoom.objects
         .filter(pk__in=room_ids)
-        .prefetch_related('members', 'members__profile')
+        .prefetch_related(
+            Prefetch(
+                'members',
+                queryset=User.objects.select_related('profile'),
+            )
+        )
         .annotate(last_msg_time=Max('messages__created_at'))
         .order_by('-last_msg_time')
     )
 
+    # Batch fetch last messages for all rooms at once
+    last_msgs = {}
+    for msg in (
+        Message.objects
+        .filter(room_id__in=room_ids)
+        .order_by('room_id', '-created_at')
+        .distinct('room_id')
+        .select_related('sender')
+        if hasattr(Message.objects.none(), 'distinct')  # Postgres only
+        else Message.objects.filter(room_id__in=room_ids).order_by('-created_at')
+    ):
+        if msg.room_id not in last_msgs:
+            last_msgs[msg.room_id] = msg
+
     result = []
     for room in rooms:
-        last_msg   = room.messages.order_by('-created_at').first()
-        membership = RoomMember.objects.get(room=room, user=user)
+        last_msg   = last_msgs.get(room.pk) or room.messages.order_by('-created_at').first()
+        membership = memberships[room.pk]
         unread     = membership.unread_count()
 
         if room.room_type == ChatRoom.RoomType.DM:
             other        = room.get_other_member(user)
             display_name = other.get_full_name() if other else 'Unknown'
-            display_avatar = other.profile.get_avatar_url() if other else '/static/images/default-avatar.png'
+            display_avatar = (
+                other.profile.get_avatar_url()
+                if other and hasattr(other, 'profile')
+                else '/static/images/default-avatar.png'
+            )
         else:
             other          = None
             display_name   = room.name or f'Group #{room.pk}'
@@ -100,3 +135,59 @@ def create_dm_view(request, user_id):
 
     room, _ = ChatRoom.get_or_create_dm(request.user, other)
     return redirect('chat:room', room_id=room.pk)
+
+
+# ── AJAX: poll new messages (fallback if WebSocket fails) ────────────
+
+@login_required
+@verified_required
+def poll_messages_view(request, room_id):
+    """
+    AJAX endpoint for polling new messages. Used as fallback when
+    WebSocket is unavailable (e.g., proxy does not support WS).
+
+    Query params:
+        since_id  — return only messages with id > since_id
+        mark_seen — if '1', mark fetched messages as seen
+
+    Returns JSON: { messages: [...], user_id: int }
+    """
+    membership = get_object_or_404(RoomMember, room_id=room_id, user=request.user)
+    room       = membership.room
+
+    since_id = request.GET.get('since_id', 0)
+    try:
+        since_id = int(since_id)
+    except (TypeError, ValueError):
+        since_id = 0
+
+    qs = (
+        room.messages
+        .select_related('sender', 'sender__profile')
+        .filter(pk__gt=since_id)
+        .order_by('created_at')
+    )
+
+    # Optionally mark as seen
+    if request.GET.get('mark_seen') == '1':
+        qs.exclude(sender=request.user).update(is_seen=True)
+        RoomMember.objects.filter(room=room, user=request.user).update(last_read=timezone.now())
+
+    data = []
+    for msg in qs:
+        try:
+            avatar = msg.sender.profile.get_avatar_url()
+        except Exception:
+            avatar = '/static/images/default-avatar.png'
+
+        data.append({
+            'id':            msg.pk,
+            'content':       msg.content,
+            'sender_id':     msg.sender_id,
+            'sender_name':   msg.sender.get_full_name(),
+            'sender_avatar': avatar,
+            'timestamp':     msg.created_at.strftime('%H:%M'),
+            'is_seen':       msg.is_seen,
+        })
+
+    return JsonResponse({'messages': data, 'user_id': request.user.pk})

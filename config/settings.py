@@ -44,14 +44,18 @@ WEASYPRINT_BASEURL = '/'
 # ── ASGI app (replaces WSGI for WebSocket support) ──
 ASGI_APPLICATION = 'config.asgi.application'
 
-# ── Channel layer ──────────────────────────────────
-# Option A — Redis (production, recommended)
+# ── Channel layer ────────────────────────────────────
+# InMemoryChannelLayer: zero-config for local dev (single-process only).
+# For production with multiple workers, install channels-redis and use:
+#   CHANNEL_LAYERS = {
+#     'default': {
+#       'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#       'CONFIG':  {'hosts': [('127.0.0.1', 6379)]},
+#     }
+#   }
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
@@ -126,3 +130,9 @@ OTP_EXPIRY_MINUTES = 10
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+# ── AI Mentor Matching ──────────────────────────────────
+# Get your free key at https://aistudio.google.com/app/apikey
+# Set via environment: set GEMINI_API_KEY=your_key_here (Windows)
+#                       export GEMINI_API_KEY=your_key_here (Linux/Mac)
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')

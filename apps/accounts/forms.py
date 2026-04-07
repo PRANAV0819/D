@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from .models import User, Profile, Department, Skill, UserSkill
+from .models import User, Profile, Department, Skill, UserSkill, DEPARTMENT_CHOICES
 
 
 class SignupForm(forms.ModelForm):
@@ -23,7 +23,7 @@ class SignupForm(forms.ModelForm):
             'last_name':  forms.TextInput(attrs={'placeholder': 'Last name'}),
             'email':      forms.EmailInput(attrs={'placeholder': 'Email address'}),
             'role':       forms.Select(),
-            'department': forms.Select(),
+            'department': forms.Select(choices=DEPARTMENT_CHOICES),
         }
 
     def clean_password1(self):

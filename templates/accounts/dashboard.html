@@ -21,7 +21,7 @@
         <img src="{{ user.profile.get_avatar_url }}" class="gh-card-avatar" alt="avatar"/>
         <h5>{{ user.get_full_name }}</h5>
         <p class="text-muted small">{{ user.get_role_display }}
-          {% if user.department %} · {{ user.department.code }}{% endif %}
+          {% if user.department %} · {{ user.get_department_display }}{% endif %}
         </p>
         {% if profile.bio %}
         <p class="gh-card-bio">{{ profile.bio }}</p>

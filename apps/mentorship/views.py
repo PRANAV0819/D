@@ -108,3 +108,37 @@ def book_session_view(request, req_id):
         messages.success(request, 'Session booked!')
         return redirect('mentorship:my')
     return render(request, 'mentorship/book_session.html', {'form': form, 'req': req})
+
+
+# ── AI Mentor Matching ─────────────────────────────────────────────────
+
+@login_required
+@verified_required
+def ai_matches_view(request):
+    """
+    Compute and display the top AI-matched mentor recommendations for
+    the logged-in student using Gemini embeddings + cosine similarity.
+
+    Also exposes the data to the dashboard via the session (cached for
+    the same request to avoid double computation).
+    """
+    from .ai_matching import get_top_mentors
+
+    student_profile = request.user.profile
+    matches = get_top_mentors(student_profile, limit=10)
+
+    # Check which mentors already have a pending/accepted request
+    existing_requests = {
+        r.mentor_id: r.status
+        for r in MentorshipRequest.objects.filter(mentee=request.user)
+    }
+
+    # Annotate each match with existing request status
+    for m in matches:
+        m['request_status'] = existing_requests.get(m['user'].pk)
+
+    return render(request, 'mentorship/ai_matches.html', {
+        'matches': matches,
+        'has_skills': student_profile.profile_skills.exists(),
+        'has_api_key': bool(__import__('os').environ.get('GEMINI_API_KEY', '')),
+    })

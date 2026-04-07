@@ -143,10 +143,21 @@ def dashboard_view(request):
     # ✅ Clean & fast
     user_skills = profile.profile_skills.select_related('skill')
 
+    # ── AI Mentor Recommendations (students only) ──────────────────────
+    ai_mentors = []
+    if request.user.is_student:
+        try:
+            from apps.mentorship.ai_matching import get_top_mentors
+            ai_mentors = get_top_mentors(profile, limit=3)
+        except Exception:
+            pass  # Never crash the dashboard if AI matching fails
+
     return render(request, 'accounts/dashboard.html', {
-        'profile': profile,
-        'skills': user_skills,
+        'profile':    profile,
+        'skills':     user_skills,
+        'ai_mentors': ai_mentors,
     })
+
 
 
 # ── Profile View ──────────────────────────────────────

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}AI Mentor Matches — GrowthHive{% endblock %}
+
+{% block content %}
+<div class="gh-page-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+  <div>
+    <h1><i class="bi bi-stars me-2 text-warning"></i>AI Mentor Recommendations</h1>
+    <p class="text-muted mb-0">Matched to your skills using Gemini AI embeddings &amp; cosine similarity</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'accounts:edit_profile' %}" class="btn gh-btn-outline btn-sm">
+      <i class="bi bi-lightning-charge me-1"></i>Update Skills
+    </a>
+    <a href="{% url 'mentorship:list' %}" class="btn gh-btn-outline btn-sm">Browse All Mentors</a>
+  </div>
+</div>
+
+{% if not has_api_key %}
+<div class="alert alert-warning d-flex align-items-center gap-3 mb-4" role="alert">
+  <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+  <div>
+    <strong>Gemini API key not configured.</strong>
+    Scores shown below are not AI-computed yet. Set the <code>GEMINI_API_KEY</code> environment variable to enable real embeddings.
+    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="alert-link">Get a free key →</a>
+  </div>
+</div>
+{% endif %}
+
+{% if not has_skills %}
+<div class="gh-empty-state mb-4">
+  <i class="bi bi-lightning-charge"></i>
+  <h5>No skills added yet</h5>
+  <p class="text-muted">Add skills to your profile so AI can find the best-matched mentors for you.</p>
+  <a href="{% url 'accounts:edit_profile' %}" class="btn gh-btn-primary mt-2">Add Skills</a>
+</div>
+{% else %}
+
+<div class="row g-3 mt-1">
+  {% for m in matches %}
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="gh-card h-100" style="border-radius:16px; overflow:hidden;">
+
+      <!-- Card header banner -->
+      <div style="height:60px; background: linear-gradient(135deg,#6366f1,#8b5cf6);"></div>
+
+      <div class="gh-people-card-body" style="padding:0 1.25rem 1.25rem;">
+        <a href="{% url 'mentorship:detail' m.user.pk %}">
+          <img src="{{ m.user.profile.get_avatar_url }}"
+               style="width:64px;height:64px;border-radius:50%;border:3px solid var(--gh-bg);margin-top:-32px;display:block;"
+               alt="avatar"/>
+        </a>
+
+        <a href="{% url 'mentorship:detail' m.user.pk %}" class="gh-people-name mt-2 d-block">
+          {{ m.user.get_full_name }}
+        </a>
+        <span class="gh-people-role">{{ m.user.get_role_display }}</span>
+
+        <!-- AI Match Score -->
+        <div class="my-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small text-muted"><i class="bi bi-cpu me-1"></i>AI Match Score</span>
+            <strong class="{% if m.score >= 70 %}text-success{% elif m.score >= 40 %}text-warning{% else %}text-muted{% endif %}">
+              {{ m.score }}%
+            </strong>
+          </div>
+          <div class="progress" style="height:8px;border-radius:99px;">
+            <div class="progress-bar {% if m.score >= 70 %}bg-success{% elif m.score >= 40 %}bg-warning{% else %}bg-secondary{% endif %}"
+                 style="width:{{ m.score }}%; border-radius:99px; transition:width 0.6s ease;"></div>
+          </div>
+        </div>
+
+        <!-- Expertise chips -->
+        <div class="gh-skills-wrap mt-2">
+          {% for exp in m.expertise_list|slice:":4" %}
+          <span class="gh-skill-badge gh-skill-intermediate">{{ exp }}</span>
+          {% endfor %}
+          {% if m.expertise_list|length > 4 %}
+          <span class="gh-skill-badge" style="background:var(--gh-border);">+{{ m.expertise_list|length|add:"-4" }} more</span>
+          {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 mt-3">
+          {% if m.request_status == 'accepted' %}
+          <span class="btn btn-sm gh-btn-outline flex-grow-1 disabled">
+            <i class="bi bi-check2-circle me-1"></i>Mentoring
+          </span>
+          {% elif m.request_status == 'pending' %}
+          <span class="btn btn-sm gh-btn-outline flex-grow-1 disabled">
+            <i class="bi bi-clock me-1"></i>Request Pending
+          </span>
+          {% else %}
+          <a href="{% url 'mentorship:detail' m.user.pk %}"
+             class="btn btn-sm gh-btn-primary flex-grow-1">
+            <i class="bi bi-person-badge me-1"></i>Request Mentor
+          </a>
+          {% endif %}
+          <a href="{% url 'chat:create_dm' m.user.pk %}"
+             class="btn btn-sm gh-btn-outline" title="Send message">
+            <i class="bi bi-chat"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="gh-empty-state">
+      <i class="bi bi-person-badge"></i>
+      <h5>No mentor profiles found</h5>
+      <p class="text-muted">Ask alumni to set up their mentor profiles at <a href="{% url 'mentorship:become' %}">Become a Mentor</a>.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endif %}
+{% endblock %}

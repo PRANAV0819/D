@@ -43,6 +43,18 @@ class Department(models.Model):
 # Custom User
 # ─────────────────────────────────────────────
 
+# ── Predefined department options ────────────────────────────────────
+DEPARTMENT_CHOICES = [
+    ('',           '— Select department —'),
+    ('AI_DS',      'AI & DS (Artificial Intelligence & Data Science)'),
+    ('CS',         'CS (Computer Science)'),
+    ('IT',         'IT (Information Technology)'),
+    ('ENTC',       'ENTC (Electronics & Telecommunication)'),
+    ('MECH',       'Mechanical Engineering'),
+    ('ELEC',       'Electrical Engineering'),
+]
+
+
 class User(AbstractUser):
 
     class Role(models.TextChoices):
@@ -58,7 +70,13 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.STUDENT)
 
     # College field removed from signup — managed separately by admin if needed
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
+    # Department stored as a simple choice string (no FK needed)
+    department = models.CharField(
+        max_length=20,
+        choices=DEPARTMENT_CHOICES,
+        blank=True,
+        default='',
+    )
 
     is_email_verified = models.BooleanField(default=False)
 
