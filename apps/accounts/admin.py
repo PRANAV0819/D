@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User, Profile, College, Department, Skill, UserSkill, OTPVerification
+# Note: College model kept for admin management; college FK removed from User
 
 
 # ─────────────────────────────────────────────
@@ -40,14 +41,14 @@ class ProfileInline(admin.StackedInline):
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     inlines       = [ProfileInline]
-    list_display  = ['email', 'get_full_name', 'role', 'college', 'is_email_verified', 'is_active']
-    list_filter   = ['role', 'is_email_verified', 'college']
+    list_display  = ['email', 'get_full_name', 'role', 'is_email_verified', 'is_active']
+    list_filter   = ['role', 'is_email_verified']
     search_fields = ['email', 'first_name', 'last_name']
     ordering      = ['-created_at']
 
     fieldsets = (
         (None,           {'fields': ('email', 'password')}),
-        ('Personal',     {'fields': ('first_name', 'last_name', 'role', 'college', 'department')}),
+        ('Personal',     {'fields': ('first_name', 'last_name', 'role', 'department')}),
         ('Verification', {'fields': ('is_email_verified',)}),
         ('Permissions',  {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
     )

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from .models import User, Profile, College, Department, Skill, UserSkill
+from .models import User, Profile, Department, Skill, UserSkill
 
 
 class SignupForm(forms.ModelForm):
@@ -16,14 +16,14 @@ class SignupForm(forms.ModelForm):
 
     class Meta:
         model  = User
-        fields = ['first_name', 'last_name', 'email', 'role', 'college', 'department']
+        # College field intentionally removed from signup
+        fields = ['first_name', 'last_name', 'email', 'role', 'department']
         widgets = {
-            'first_name':  forms.TextInput(attrs={'placeholder': 'First name'}),
-            'last_name':   forms.TextInput(attrs={'placeholder': 'Last name'}),
-            'email':       forms.EmailInput(attrs={'placeholder': 'College email address'}),
-            'role':        forms.Select(),
-            'college':     forms.Select(),
-            'department':  forms.Select(),
+            'first_name': forms.TextInput(attrs={'placeholder': 'First name'}),
+            'last_name':  forms.TextInput(attrs={'placeholder': 'Last name'}),
+            'email':      forms.EmailInput(attrs={'placeholder': 'Email address'}),
+            'role':       forms.Select(),
+            'department': forms.Select(),
         }
 
     def clean_password1(self):

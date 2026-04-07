@@ -57,7 +57,7 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.STUDENT)
 
-    college = models.ForeignKey(College, on_delete=models.SET_NULL, null=True, blank=True)
+    # College field removed from signup — managed separately by admin if needed
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
 
     is_email_verified = models.BooleanField(default=False)
@@ -139,6 +139,13 @@ class Profile(models.Model):
 
     is_open_to_work   = models.BooleanField(default=False)
     is_open_to_mentor = models.BooleanField(default=False)
+
+    # ── AI Mentor Matching ────────────────────────────────────
+    # Cached Gemini embedding vector for skill-based matching.
+    # Stored as a JSON list of floats (768-dim). Recomputed
+    # whenever skills are added or removed via signals.
+    skill_embedding     = models.JSONField(null=True, blank=True)
+    embedding_updated_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

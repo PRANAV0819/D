@@ -22,7 +22,6 @@
         <h5>{{ user.get_full_name }}</h5>
         <p class="text-muted small">{{ user.get_role_display }}
           {% if user.department %} · {{ user.department.code }}{% endif %}
-          {% if user.college %} · {{ user.college.name }}{% endif %}
         </p>
         {% if profile.bio %}
         <p class="gh-card-bio">{{ profile.bio }}</p>
@@ -102,4 +101,46 @@
   </div>
 
 </div>
+
+{% if user.is_student and ai_mentors %}
+<!-- ────────── AI Recommended Mentors ────────── -->
+<div class="gh-page-header mt-4 d-flex align-items-center justify-content-between">
+  <div>
+    <h5 class="mb-0"><i class="bi bi-stars me-2 text-warning"></i>AI Recommended Mentors</h5>
+    <p class="text-muted small mb-0">Matched to your skills by AI similarity</p>
+  </div>
+  <a href="{% url 'mentorship:ai_matches' %}" class="gh-link-sm">View all &rarr;</a>
+</div>
+<div class="gh-people-grid">
+  {% for m in ai_mentors %}
+  <div class="gh-people-card">
+    <div class="gh-people-card-banner"></div>
+    <div class="gh-people-card-body">
+      <a href="{% url 'mentorship:detail' m.user.pk %}">
+        <img src="{{ m.user.profile.get_avatar_url }}" class="gh-people-avatar" alt=""/>
+      </a>
+      <a href="{% url 'mentorship:detail' m.user.pk %}" class="gh-people-name">{{ m.user.get_full_name }}</a>
+      <span class="gh-people-role">{{ m.user.get_role_display }}</span>
+      <!-- AI match score badge -->
+      <div class="my-2">
+        <div class="d-flex align-items-center gap-2">
+          <div class="progress flex-grow-1" style="height:6px;">
+            <div class="progress-bar bg-success" style="width:{{ m.score }}%;"></div>
+          </div>
+          <span class="gh-tag gh-tag-green" style="font-size:.7rem;">{{ m.score }}% match</span>
+        </div>
+      </div>
+      <div class="gh-skills-wrap justify-content-center mt-1">
+        {% for exp in m.expertise_list|slice:":3" %}
+        <span class="gh-skill-badge gh-skill-intermediate">{{ exp }}</span>
+        {% endfor %}
+      </div>
+      <a href="{% url 'chat:create_dm' m.user.pk %}" class="btn gh-btn-primary w-100 mt-2 btn-sm">
+        <i class="bi bi-chat me-1"></i>Connect
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

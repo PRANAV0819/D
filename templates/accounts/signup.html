@@ -61,13 +61,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="gh-label">College</label>
-          {{ form.college }}
-          {% if form.college.errors %}<div class="gh-field-error">{{ form.college.errors.0 }}</div>{% endif %}
-        </div>
-
-        <div class="mb-3">
-          <label class="gh-label">Department</label>
+          <label class="gh-label">Department <span class="text-muted small">(optional)</span></label>
           {{ form.department }}
           {% if form.department.errors %}<div class="gh-field-error">{{ form.department.errors.0 }}</div>{% endif %}
         </div>
@@ -97,22 +91,4 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-// Dynamically load departments when college changes
-document.querySelector('[name="college"]').addEventListener('change', function () {
-  const collegeId = this.value;
-  const deptSelect = document.querySelector('[name="department"]');
-  deptSelect.innerHTML = '<option value="">— Loading… —</option>';
-  if (!collegeId) return;
-  fetch(`/accounts/ajax/departments/?college_id=${collegeId}`)
-    .then(r => r.json())
-    .then(data => {
-      deptSelect.innerHTML = '<option value="">— Select department —</option>';
-      data.departments.forEach(d => {
-        deptSelect.innerHTML += `<option value="${d.id}">${d.code} — ${d.name}</option>`;
-      });
-    });
-});
-</script>
-{% endblock %}
+{% endblock %}
