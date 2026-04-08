@@ -106,6 +106,10 @@ class User(AbstractUser):
     def is_teacher(self):
         return self.role == self.Role.TEACHER
 
+    @property
+    def is_alumni(self):
+        return self.role == self.Role.ALUMNI
+
 
 # ─────────────────────────────────────────────
 # Skill
@@ -140,6 +144,9 @@ class Profile(models.Model):
 
     graduation_year = models.PositiveIntegerField(null=True, blank=True)
     current_year    = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    current_working_company = models.CharField(max_length=200, blank=True)
+    working_domain          = models.CharField(max_length=200, blank=True)
 
     github_url   = models.URLField(blank=True)
     linkedin_url = models.URLField(blank=True)

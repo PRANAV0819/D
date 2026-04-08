@@ -48,6 +48,7 @@
   </div>
 
   <!-- As Mentor (incoming requests) -->
+  {% if not request.user.is_student %}
   <div class="col-lg-6">
     <div class="gh-card h-100">
       <div class="gh-card-header-row mb-3">
@@ -91,6 +92,7 @@
       {% endfor %}
     </div>
   </div>
+  {% endif %}
 
 </div>
 {% endblock %}

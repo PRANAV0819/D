@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+os.environ["GEMINI_API_KEY"] = "AIzaSyDowzVb7WiVNnVEL8nzVnOSJimZlQ2vDNo"
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-change-this-in-production'

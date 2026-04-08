@@ -49,7 +49,7 @@ def analytics_view(request):
     streak      = user.profile.streak_days
 
     # Skill distribution (for chart)
-    user_skills = user.user_skills.select_related('skill').all()
+    user_skills = user.profile.profile_skills.select_related('skill').all()
 
     return render(request, 'analytics/dashboard.html', {
         'weeks':       weeks,

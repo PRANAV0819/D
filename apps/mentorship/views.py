@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from apps.accounts.decorators import verified_required
+from apps.accounts.decorators import verified_required, alumni_or_teacher_required
 from apps.accounts.models import User
 from .models import MentorProfile, MentorshipRequest, MentorSession
 from .forms import MentorProfileForm, MentorshipRequestForm, MentorSessionForm
@@ -11,7 +11,7 @@ from .forms import MentorProfileForm, MentorshipRequestForm, MentorSessionForm
 @login_required
 @verified_required
 def mentor_list_view(request):
-    mentors = MentorProfile.objects.filter(is_active=True).select_related('user', 'user__profile', 'user__department')
+    mentors = MentorProfile.objects.filter(is_active=True).select_related('user', 'user__profile')
     q = request.GET.get('q', '')
     if q:
         mentors = mentors.filter(expertise__icontains=q)
@@ -35,6 +35,7 @@ def mentor_detail_view(request, user_id):
 
 @login_required
 @verified_required
+@alumni_or_teacher_required
 def become_mentor_view(request):
     profile, _ = MentorProfile.objects.get_or_create(user=request.user)
     form = MentorProfileForm(request.POST or None, instance=profile)

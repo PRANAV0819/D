@@ -95,6 +95,7 @@ class ProfileEditForm(forms.ModelForm):
         fields = [
             'bio', 'avatar', 'banner',
             'graduation_year', 'current_year',
+            'current_working_company', 'working_domain',
             'github_url', 'linkedin_url', 'website', 'location',
             'resume', 'is_open_to_work', 'is_open_to_mentor',
         ]
@@ -106,6 +107,8 @@ class ProfileEditForm(forms.ModelForm):
             'website':         forms.URLInput(attrs={'placeholder': 'https://yourwebsite.com'}),
             'graduation_year': forms.NumberInput(attrs={'placeholder': '2026'}),
             'current_year':    forms.NumberInput(attrs={'placeholder': '3'}),
+            'current_working_company': forms.TextInput(attrs={'placeholder': 'Company name'}),
+            'working_domain':  forms.TextInput(attrs={'placeholder': 'e.g. Software, Core'}),
         }
 
     def __init__(self, *args, **kwargs):

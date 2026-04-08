@@ -18,9 +18,10 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 # ── Gemini embedding settings ──────────────────────────────────────────────
+GEMINI_MODEL   = "models/gemini-embedding-001"
 GEMINI_API_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models/"
-    "gemini-embedding-exp-03-07:embedContent"
+    "https://generativelanguage.googleapis.com/v1beta/"
+    f"{GEMINI_MODEL}:embedContent"
 )
 
 
@@ -42,7 +43,7 @@ def get_embedding(text: str) -> list[float] | None:
         import urllib.request, json as _json
 
         payload = _json.dumps({
-            "model": "models/gemini-embedding-exp-03-07",
+            "model": GEMINI_MODEL,
             "content": {
                 "parts": [{"text": text}]
             },
@@ -182,7 +183,13 @@ def get_top_mentors(student_profile, limit: int = 5) -> list[dict]:
 
     results = []
     for mp in mentor_profiles:
-        mentor_vec = mp.user.profile.skill_embedding
+        profile = mp.user.profile
+        
+        # If the mentor has no embedding yet, try to compute one now
+        if profile.skill_embedding is None:
+            compute_and_store_embedding(profile)
+            
+        mentor_vec = profile.skill_embedding
 
         if student_vec and mentor_vec:
             sim   = cosine_similarity(student_vec, mentor_vec)

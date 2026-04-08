@@ -1,6 +1,7 @@
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Max, Prefetch
@@ -37,16 +38,13 @@ def build_room_list(user):
         .order_by('-last_msg_time')
     )
 
-    # Batch fetch last messages for all rooms at once
+    # Batch fetch last messages for all rooms at once (SQLite-compatible)
     last_msgs = {}
     for msg in (
         Message.objects
         .filter(room_id__in=room_ids)
         .order_by('room_id', '-created_at')
-        .distinct('room_id')
         .select_related('sender')
-        if hasattr(Message.objects.none(), 'distinct')  # Postgres only
-        else Message.objects.filter(room_id__in=room_ids).order_by('-created_at')
     ):
         if msg.room_id not in last_msgs:
             last_msgs[msg.room_id] = msg
@@ -190,4 +188,71 @@ def poll_messages_view(request, room_id):
             'is_seen':       msg.is_seen,
         })
 
-    return JsonResponse({'messages': data, 'user_id': request.user.pk})
+    return JsonResponse({'messages': data, 'user_id': request.user.pk})
+
+
+# ── AJAX: send a message (fallback when WebSocket is unavailable) ─────
+
+@login_required
+@verified_required
+def send_message_view(request, room_id):
+    """
+    POST-only AJAX endpoint. Saves a message to the DB.
+    Returns the saved message as JSON so the client can render it immediately.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    membership = get_object_or_404(RoomMember, room_id=room_id, user=request.user)
+    room = membership.room
+
+    content = request.POST.get('content', '').strip()
+    if not content:
+        return JsonResponse({'error': 'empty message'}, status=400)
+
+    from .models import Message
+    msg = Message.objects.create(room=room, sender=request.user, content=content)
+
+    try:
+        avatar = request.user.profile.get_avatar_url()
+    except Exception:
+        avatar = '/static/images/default-avatar.png'
+
+    return JsonResponse({
+        'id':            msg.pk,
+        'content':       msg.content,
+        'sender_id':     request.user.pk,
+        'sender_name':   request.user.get_full_name(),
+        'sender_avatar': avatar,
+        'timestamp':     msg.created_at.strftime('%H:%M'),
+    }, status=201)
+
+
+# ── Delete a conversation ────────────────────────────────────────────
+
+@login_required
+@verified_required
+def delete_room_view(request, room_id):
+    """
+    POST: Remove the current user from the room (soft-delete for the user).
+    If no members remain after removal, delete the entire room too.
+    """
+    if request.method != 'POST':
+        return redirect('chat:inbox')
+
+    # Use filter().first() instead of get_object_or_404 out of precaution.
+    # If the user clicks delete twice (or the request was interrupted halfway last time),
+    # they shouldn't see a 404 error page. They are simply redirected.
+    membership = RoomMember.objects.filter(room_id=room_id, user=request.user).first()
+    
+    if membership:
+        room = membership.room
+        membership.delete()
+
+        # If no members remain, clean up the room entirely
+        if not RoomMember.objects.filter(room=room).exists():
+            room.delete()
+
+        messages.success(request, 'Conversation deleted.')
+        
+    return redirect('chat:inbox')

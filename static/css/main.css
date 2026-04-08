@@ -838,6 +838,12 @@ textarea {
     max-width: 980px;
 }
 
+.gh-feed-sidebar {
+    position: sticky;
+    top: 1.5rem;
+    height: max-content;
+}
+
 @media (max-width: 900px) {
     .gh-feed-layout {
         grid-template-columns: 1fr;

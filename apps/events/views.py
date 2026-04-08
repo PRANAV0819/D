@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from apps.accounts.decorators import verified_required
+from apps.accounts.decorators import verified_required, alumni_or_teacher_required
 from .models import Event, EventRegistration
 from .forms import EventForm
 
@@ -32,6 +32,7 @@ def event_detail_view(request, pk):
 
 @login_required
 @verified_required
+@alumni_or_teacher_required
 def create_event_view(request):
     form = EventForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():

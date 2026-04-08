@@ -24,10 +24,12 @@ def feed_view(request):
     from apps.connections.models import Connection
 
     # Collect IDs of accepted connections
-    connected_ids = Connection.objects.filter(
+    connections_qs = Connection.objects.filter(
         Q(sender=request.user) | Q(receiver=request.user),
         status=Connection.Status.ACCEPTED,
-    ).values_list('sender_id', 'receiver_id')
+    )
+    conn_count = connections_qs.count()
+    connected_ids = connections_qs.values_list('sender_id', 'receiver_id')
 
     # Flatten the pairs, excluding the current user's own id
     user_ids = set()
@@ -49,6 +51,7 @@ def feed_view(request):
     return render(request, 'social/feed.html', {
         'posts':     posts,
         'post_form': post_form,
+        'conn_count': conn_count,
     })
 
 

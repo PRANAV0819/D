@@ -128,10 +128,10 @@
     <div class="gh-topbar">
       
       <div class="gh-topbar-actions">
-        <button class="gh-icon-btn" id="notifBtn" title="Notifications">
+        <a href="{% url 'notifications:list' %}" class="gh-icon-btn" id="notifBtn" title="Notifications">
           <i class="bi bi-bell"></i>
           <span class="gh-notif-dot"></span>
-        </button>
+        </a>
         <a href="{% url 'accounts:profile' %}" class="gh-topbar-avatar">
           <img src="{{ user.profile.get_avatar_url }}" alt="avatar"/>
         </a>

@@ -37,6 +37,20 @@
           {{ form.location }}
         </div>
         <div class="row g-2">
+          {% if request.user.is_alumni %}
+          <div class="col-12 col-md-4">
+            <label class="gh-label">Pass out year</label>
+            {{ form.graduation_year }}
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="gh-label">Current Company</label>
+            {{ form.current_working_company }}
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="gh-label">Domain</label>
+            {{ form.working_domain }}
+          </div>
+          {% else %}
           <div class="col-6">
             <label class="gh-label">Graduation year</label>
             {{ form.graduation_year }}
@@ -45,6 +59,7 @@
             <label class="gh-label">Current year</label>
             {{ form.current_year }}
           </div>
+          {% endif %}
         </div>
       </div>
 
@@ -54,14 +69,14 @@
         <div class="row g-2">
           <div class="col-6">
             <label class="gh-label">Avatar</label>
-            {% if profile.avatar %}
-            <img src="{{ profile.avatar.url }}" class="gh-thumb mb-2" alt="current avatar"/>
-            {% endif %}
+            <br/>
+            <img src="{{ request.user.profile.get_avatar_url }}" style="width:64px;height:64px;object-fit:cover;border-radius:50%;" class="mb-2" alt="avatar"/>
             {{ form.avatar }}
           </div>
           <div class="col-6">
             <label class="gh-label">Banner image</label>
             {% if profile.banner %}
+            <br/>
             <img src="{{ profile.banner.url }}" class="gh-thumb mb-2" alt="current banner"/>
             {% endif %}
             {{ form.banner }}
@@ -121,7 +136,7 @@
 
       <!-- Existing skills -->
       <div class="gh-skills-wrap mb-3">
-        {% for us in request.user.user_skills.all %}
+        {% for us in request.user.profile.profile_skills.all %}
         <div class="gh-skill-badge-edit">
           <span class="gh-skill-badge gh-skill-{{ us.level }}">{{ us.skill.name }}</span>
           <form method="post" action="{% url 'accounts:remove_skill' us.skill.id %}" class="d-inline">

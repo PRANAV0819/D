@@ -4,7 +4,12 @@
 {% block content %}
 <div class="gh-page-header d-flex align-items-center justify-content-between">
   <div><h1>Find a Mentor</h1><p class="text-muted">Get guidance from alumni and teachers.</p></div>
+  {% if not request.user.is_student %}
   <a href="{% url 'mentorship:become' %}" class="btn gh-btn-primary"><i class="bi bi-person-badge me-1"></i>Become a Mentor</a>
+  {% endif %}
+  {% if request.user.is_student %}
+  <a href="{% url 'mentorship:ai_matches' %}" class="btn gh-btn-primary" style="background:var(--gh-purple);border-color:var(--gh-purple);"><i class="bi bi-stars me-1"></i>AI Mentor Match</a>
+  {% endif %}
 </div>
 
 <div class="gh-card mb-4">

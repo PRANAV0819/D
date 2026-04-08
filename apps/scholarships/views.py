@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 
-from apps.accounts.decorators import verified_required
+from apps.accounts.decorators import verified_required, alumni_or_teacher_required
 from .models import Scholarship
 from .forms import ScholarshipForm
 
@@ -33,6 +33,7 @@ def scholarship_detail_view(request, pk):
 
 @login_required
 @verified_required
+@alumni_or_teacher_required
 def post_scholarship_view(request):
     form = ScholarshipForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():

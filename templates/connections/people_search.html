@@ -33,8 +33,8 @@
         {{ person.get_full_name }}
       </a>
       <span class="gh-people-role">{{ person.get_role_display }}
-        {% if person.department %} · {{ person.department.code }}{% endif %}
-        {% if person.college %} · {{ person.college.name }}{% endif %}
+        {% if person.department %} · {{ person.get_department_display }}{% endif %}
+
       </span>
     </div>
     <div class="gh-people-list-action ms-auto">

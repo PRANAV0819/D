@@ -58,67 +58,94 @@
 <!-- My connections -->
 <section class="mb-4">
   <h5 class="gh-section-title">
-    Your connections
+    <i class="bi bi-people-fill me-2"></i>
+    Connected People
     <span class="gh-section-badge">{{ accepted.count }}</span>
   </h5>
 
   {% if accepted %}
   <div class="gh-people-grid">
-
     {% for conn in accepted %}
-
-  {% if conn.sender == user %}
-    
-    {% with other=conn.receiver %}
-      <div class="gh-people-card">
-        <a href="{% url 'accounts:profile_detail' other.pk %}">
-          {{ other.get_full_name }}
-        </a>
-      </div>
-    {% endwith %}
-
-  {% else %}
-
-    {% with other=conn.sender %}
-      <div class="gh-people-card">
-        <a href="{% url 'accounts:profile_detail' other.pk %}">
-          {{ other.get_full_name }}
-        </a>
-      </div>
-    {% endwith %}
-
-  {% endif %}
-
-{% endfor %}
-
+      {% if conn.sender == user %}
+        {% with other=conn.receiver %}
+        <div class="gh-people-card">
+          <div class="gh-people-card-banner"></div>
+          <div class="gh-people-card-body">
+            <a href="{% url 'accounts:profile_detail' other.pk %}">
+              <img src="{{ other.profile.get_avatar_url }}" class="gh-people-avatar"/>
+            </a>
+            <a href="{% url 'accounts:profile_detail' other.pk %}" class="gh-people-name">
+              {{ other.get_full_name }}
+            </a>
+            <span class="gh-people-role">{{ other.get_role_display }}
+              {% if other.department %} · {{ other.get_department_display }}{% endif %}
+            </span>
+            <div class="gh-people-actions mt-2">
+              <a href="{% url 'accounts:profile_detail' other.pk %}" class="btn gh-btn-outline w-100">View Profile</a>
+            </div>
+          </div>
+        </div>
+        {% endwith %}
+      {% else %}
+        {% with other=conn.sender %}
+        <div class="gh-people-card">
+          <div class="gh-people-card-banner"></div>
+          <div class="gh-people-card-body">
+            <a href="{% url 'accounts:profile_detail' other.pk %}">
+              <img src="{{ other.profile.get_avatar_url }}" class="gh-people-avatar"/>
+            </a>
+            <a href="{% url 'accounts:profile_detail' other.pk %}" class="gh-people-name">
+              {{ other.get_full_name }}
+            </a>
+            <span class="gh-people-role">{{ other.get_role_display }}
+              {% if other.department %} · {{ other.get_department_display }}{% endif %}
+            </span>
+            <div class="gh-people-actions mt-2">
+              <a href="{% url 'accounts:profile_detail' other.pk %}" class="btn gh-btn-outline w-100">View Profile</a>
+            </div>
+          </div>
+        </div>
+        {% endwith %}
+      {% endif %}
+    {% endfor %}
   </div>
 
   {% else %}
-  <p>No connections yet</p>
+  <div class="gh-empty-state">
+    <i class="bi bi-people"></i>
+    <h5>No connections yet</h5>
+    <p>Start connecting with people below!</p>
+  </div>
   {% endif %}
 </section>
 
 <!-- Suggestions -->
 {% if suggestions %}
 <section>
-  <h5>People you may know</h5>
+  <h5 class="gh-section-title"><i class="bi bi-globe me-2"></i>Students, Alumni & Teachers</h5>
   <div class="gh-people-grid">
     {% for person in suggestions %}
     <div class="gh-people-card">
+      <div class="gh-people-card-banner"></div>
       <div class="gh-people-card-body">
 
         <a href="{% url 'accounts:profile_detail' person.pk %}">
           <img src="{{ person.profile.get_avatar_url }}" class="gh-people-avatar"/>
         </a>
 
-        <a href="{% url 'accounts:profile_detail' person.pk %}">
+        <a href="{% url 'accounts:profile_detail' person.pk %}" class="gh-people-name">
           {{ person.get_full_name }}
         </a>
+        <span class="gh-people-role">{{ person.get_role_display }}
+          {% if person.department %} · {{ person.get_department_display }}{% endif %}
+        </span>
 
-        <form method="post" action="{% url 'connections:send_request' person.pk %}">
-          {% csrf_token %}
-          <button class="btn gh-btn-primary">Connect</button>
-        </form>
+        <div class="gh-people-actions mt-2">
+          <form method="post" action="{% url 'connections:send_request' person.pk %}" class="w-100">
+            {% csrf_token %}
+            <button class="btn gh-btn-primary w-100">Connect</button>
+          </form>
+        </div>
 
       </div>
     </div>

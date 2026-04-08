@@ -57,7 +57,7 @@
           </a>
           <span class="gh-post-role">
             {{ post.author.get_role_display }}
-            {% if post.author.department %} · {{ post.author.department.code }}{% endif %}
+            {% if post.author.department %} · {{ post.author.get_department_display }}{% endif %}
           </span>
           <span class="gh-post-time">{{ post.created_at|timesince }} ago</span>
         </div>
@@ -177,7 +177,7 @@
         <span class="gh-feed-role">{{ user.get_role_display }}</span>
         <div class="gh-feed-stats">
           <a href="{% url 'connections:network' %}" class="gh-feed-stat">
-            <span class="val" id="conn-count">—</span>
+            <span class="val" id="conn-count">{{ conn_count }}</span>
             <span class="lbl">Connections</span>
           </a>
           <div class="gh-feed-stat">

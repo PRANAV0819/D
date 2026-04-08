@@ -8,6 +8,7 @@ from .models import User, Profile, OTPVerification, Department, UserSkill, Skill
 from .forms import SignupForm, LoginForm, OTPForm, ProfileEditForm, SkillForm
 from .utils import send_otp_email
 from .decorators import verified_required
+from apps.connections.models import Connection
 
 
 # ── Signup ────────────────────────────────────────────
@@ -154,7 +155,7 @@ def dashboard_view(request):
 
     return render(request, 'accounts/dashboard.html', {
         'profile':    profile,
-        'skills':     user_skills,
+        'user_skills':     user_skills,
         'ai_mentors': ai_mentors,
     })
 
@@ -177,11 +178,18 @@ def profile_view(request, user_id=None):
         profile__user=target_user
     ).select_related('skill')
 
+    conn_status = 'none'
+    if request.user != target_user:
+        conn = Connection.get_status_between(request.user, target_user)
+        if conn:
+            conn_status = conn.status
+
     return render(request, 'accounts/profile.html', {
         'target_user': target_user,
         'profile': profile,
         'user_skills': user_skills,
         'is_own': target_user == request.user,
+        'conn_status': conn_status,
     })
 
 

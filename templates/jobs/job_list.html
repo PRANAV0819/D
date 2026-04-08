@@ -7,9 +7,11 @@
     <h1>Jobs & Internships</h1>
     <p class="text-muted">Browse opportunities posted by alumni, teachers, and students.</p>
   </div>
+  {% if not request.user.is_student %}
   <a href="{% url 'jobs:post' %}" class="btn gh-btn-primary">
     <i class="bi bi-plus-lg me-1"></i>Post a Job
   </a>
+  {% endif %}
 </div>
 
 <!-- Filters -->

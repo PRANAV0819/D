@@ -42,10 +42,10 @@ def network_view(request):
 
     suggestions = (
         User.objects
-        .filter(college=user.college, is_active=True, is_email_verified=True)
+        .filter(is_active=True, is_email_verified=True)
         .exclude(pk__in=excluded_ids)
         .select_related('profile')
-        .order_by('?')[:12]
+        .order_by('?')[:24]
     )
 
     return render(request, 'connections/network.html', {
@@ -149,7 +149,7 @@ def people_search_view(request):
                 is_email_verified=True,
             )
             .exclude(pk=request.user.pk)
-            .select_related('profile', 'college', 'department')[:20]
+            .select_related('profile')[:20]
         )
 
         # Annotate each result with the connection status

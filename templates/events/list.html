@@ -4,7 +4,9 @@
 {% block content %}
 <div class="gh-page-header d-flex align-items-center justify-content-between">
   <div><h1>Events & Workshops</h1><p class="text-muted">Hackathons, webinars, and opportunities near you.</p></div>
+  {% if not request.user.is_student %}
   <a href="{% url 'events:create' %}" class="btn gh-btn-primary"><i class="bi bi-plus-lg me-1"></i>Create Event</a>
+  {% endif %}
 </div>
 
 <div class="gh-card mb-4">
