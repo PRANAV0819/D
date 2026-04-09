@@ -8,31 +8,83 @@
 </div>
 
 <div class="gh-card mb-4">
-  <form method="get" class="gh-filter-form">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search items…" class="gh-input gh-filter-search"/>
-    <button type="submit" class="btn gh-btn-primary">Search</button>
-    <a href="{% url 'marketplace:list' %}" class="btn gh-btn-outline">Clear</a>
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-3">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search items…" class="gh-input w-100"/>
+    </div>
+    <div class="col-md-2">
+      <select name="category" class="gh-input w-100">
+        <option value="">All Categories</option>
+        {% for val, label in categories %}<option value="{{ val }}" {% if selected_category == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="condition" class="gh-input w-100">
+        <option value="">Any Condition</option>
+        {% for val, label in conditions %}<option value="{{ val }}" {% if selected_condition == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <div class="input-group">
+        <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min ₹" class="gh-input form-control">
+        <input type="number" name="max_price" value="{{ max_price }}" placeholder="Max ₹" class="gh-input form-control">
+      </div>
+    </div>
+    <div class="col-md-2">
+      <input type="text" name="location" value="{{ location }}" placeholder="Location..." class="gh-input w-100"/>
+    </div>
+    <div class="col-md-1 d-flex gap-1 justify-content-end">
+      <button type="submit" class="btn gh-btn-primary flex-grow-1 p-2" title="Search"><i class="bi bi-search"></i></button>
+      <a href="{% url 'marketplace:list' %}" class="btn gh-btn-outline p-2" title="Clear"><i class="bi bi-x-lg"></i></a>
+    </div>
   </form>
 </div>
 
 <div class="gh-marketplace-grid">
   {% for item in items %}
-  <a href="{% url 'marketplace:detail' item.pk %}" class="gh-market-card gh-card text-decoration-none">
+  <a href="{% url 'marketplace:detail' item.pk %}" class="gh-market-card gh-card text-decoration-none" data-title="{{ item.title }}">
     <div class="gh-market-img">
       {% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.title }}"/>
       {% else %}<div class="gh-market-img-placeholder"><i class="bi bi-box-seam"></i></div>{% endif %}
     </div>
     <div class="gh-market-body">
-      <h6 class="gh-market-title">{{ item.title }}</h6>
+      <h6 class="gh-market-title highlight-target">{{ item.title }}</h6>
       <span class="gh-market-price">₹{{ item.price }}</span>
-      <div class="d-flex justify-content-between align-items-center mt-1">
+      <div class="d-flex justify-content-between align-items-center mt-1 mb-1">
         <span class="gh-tag gh-tag-gray">{{ item.get_condition_display }}</span>
-        <span class="text-muted" style="font-size:.72rem;">{{ item.created_at|timesince }} ago</span>
+        <span class="gh-tag gh-tag-blue">{{ item.get_category_display }}</span>
+      </div>
+      <div class="text-muted d-flex justify-content-between align-items-center" style="font-size:.72rem;">
+        <span>{% if item.location %}<i class="bi bi-geo-alt me-1"></i>{{ item.location|truncatechars:15 }}{% else %}No Location{% endif %}</span>
+        <span>{{ item.created_at|timesince }} ago</span>
       </div>
     </div>
   </a>
   {% empty %}
-  <div class="gh-empty-state"><i class="bi bi-shop"></i><h5>No items listed</h5></div>
+  <div class="gh-empty-state col-12 text-center p-5">
+    <i class="bi bi-search display-4 text-muted mb-3 d-block"></i>
+    <h4 class="text-muted">No results found</h4>
+    <p class="text-muted small">Try adjusting your filters or search terms.</p>
+    <a href="{% url 'marketplace:list' %}" class="btn gh-btn-outline mt-2">Clear Filters</a>
+  </div>
   {% endfor %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const query = "{{ q|escapejs }}";
+    if (!query) return;
+    
+    // Simple logic to wrap matched keyword in a span with background color
+    const regex = new RegExp(`(${query})`, "gi");
+    document.querySelectorAll('.highlight-target').forEach(el => {
+        const text = el.textContent;
+        if (regex.test(text)) {
+            el.innerHTML = text.replace(regex, `<mark class="bg-warning text-dark px-1 rounded">$1</mark>`);
+        }
+    });
+});
+</script>
 {% endblock %}

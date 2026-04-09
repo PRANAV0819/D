@@ -19,6 +19,7 @@ class LostFoundItem(models.Model):
     title       = models.CharField(max_length=200)
     description = models.TextField()
     location    = models.CharField(max_length=200, blank=True)
+    deposited_at = models.CharField(max_length=200, blank=True, help_text="For found items, where is it currently kept?")
     image       = models.ImageField(upload_to='lost_found/', blank=True, null=True)
     status      = models.CharField(max_length=20, choices=ItemStatus.choices, default=ItemStatus.OPEN)
     created_at  = models.DateTimeField(auto_now_add=True)

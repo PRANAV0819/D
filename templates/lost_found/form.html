@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Post Item — Lost & Found{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="gh-page-header text-center mb-4">
+      <h1 class="h3">Report Lost or Found Item</h1>
+      <p class="text-muted">Help the campus community by sharing details.</p>
+    </div>
+
+    <div class="gh-card">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <label class="gh-label d-block text-center mb-3">Is your item Lost or Found?</label>
+          <div class="btn-group w-100" role="group">
+            <input type="radio" class="btn-check" name="item_type" id="type_lost" value="lost" {% if form.item_type.value == 'lost' %}checked{% endif %} required>
+            <label class="btn btn-outline-danger" for="type_lost">I Lost Something</label>
+            
+            <input type="radio" class="btn-check" name="item_type" id="type_found" value="found" {% if form.item_type.value == 'found' %}checked{% endif %} required>
+            <label class="btn btn-outline-success" for="type_found">I Found Something</label>
+          </div>
+          {% if form.item_type.errors %}<div class="gh-field-error mt-2">{{ form.item_type.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="gh-label">Item Name</label>
+          {{ form.title }}
+          {% if form.title.errors %}<div class="gh-field-error">{{ form.title.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="gh-label">Description</label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="gh-field-error">{{ form.description.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3" id="depositedAtWrapper" style="display:none;">
+          <label class="gh-label">Deposited At (Found Items only)</label>
+          {{ form.deposited_at }}
+          {% if form.deposited_at.errors %}<div class="gh-field-error">{{ form.deposited_at.errors|join:", " }}</div>{% endif %}
+          <p class="text-muted small mt-1">Where did you leave the item? e.g. Staff Room, Security Desk.</p>
+        </div>
+
+        <div class="mb-3">
+          <label class="gh-label">Location (where you lost/found it)</label>
+          {{ form.location }}
+          {% if form.location.errors %}<div class="gh-field-error">{{ form.location.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label class="gh-label">Image (optional)</label>
+          <input type="file" name="image" class="gh-input" accept="image/*">
+          {% if form.image.errors %}<div class="gh-field-error">{{ form.image.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="d-flex gap-2">
+          <a href="{% url 'lost_found:list' %}" class="btn gh-btn-outline w-50 justify-content-center">Cancel</a>
+          <button type="submit" class="btn gh-btn-primary w-50">Post Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const lostRadio = document.getElementById('type_lost');
+  const foundRadio = document.getElementById('type_found');
+  const depositedWrapper = document.getElementById('depositedAtWrapper');
+
+  function toggleDeposited() {
+    if (foundRadio.checked) {
+      depositedWrapper.style.display = 'block';
+    } else {
+      depositedWrapper.style.display = 'none';
+    }
+  }
+
+  lostRadio.addEventListener('change', toggleDeposited);
+  foundRadio.addEventListener('change', toggleDeposited);
+  
+  // Initial check
+  toggleDeposited();
+});
+</script>
+{% endblock %}

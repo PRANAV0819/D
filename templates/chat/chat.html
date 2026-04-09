@@ -147,6 +147,9 @@
           <span class="gh-msg-sender-name">{{ msg.sender.get_full_name }}</span>
           {% endif %}
           <div class="gh-msg-bubble">
+            {% if msg.image %}
+            <div class="mb-2"><img src="{{ msg.image.url }}" alt="Image" style="max-width: 100%; border-radius: 8px;"></div>
+            {% endif %}
             {{ msg.content|linebreaksbr }}
           </div>
           <div class="gh-msg-meta">
@@ -179,7 +182,11 @@
 
     <!-- Message input -->
     <div class="gh-chat-input-area">
-      <div class="gh-chat-input-wrap">
+      <div class="gh-chat-input-wrap position-relative">
+        <input type="file" id="chatImageInput" accept="image/*" style="display:none;">
+        <button type="button" class="gh-icon-btn ms-2 me-1" onclick="document.getElementById('chatImageInput').click();" title="Attach Image">
+          <i class="bi bi-image" id="chatImageBtnIcon"></i>
+        </button>
         <textarea
           id="messageInput"
           class="gh-chat-input"
@@ -187,7 +194,7 @@
           rows="1"
           maxlength="5000"
         ></textarea>
-        <button class="gh-chat-send-btn" id="sendBtn" disabled>
+        <button class="gh-chat-send-btn ms-1" id="sendBtn" disabled>
           <i class="bi bi-send-fill"></i>
         </button>
       </div>
@@ -222,6 +229,8 @@ const ws = new WebSocket(`${protocol}//${location.host}/ws/chat/${ROOM_ID}/`);
 const msgArea   = document.getElementById('messagesArea');
 const input     = document.getElementById('messageInput');
 const sendBtn   = document.getElementById('sendBtn');
+const imageInput= document.getElementById('chatImageInput');
+const imageIcon = document.getElementById('chatImageBtnIcon');
 const typingBar = document.getElementById('typingBar');
 const typingText= document.getElementById('typingText');
 const onlineDot = document.getElementById('onlineDot');
@@ -232,6 +241,18 @@ function scrollBottom(smooth = false) {
   msgArea.scrollTo({ top: msgArea.scrollHeight, behavior: smooth ? 'smooth' : 'instant' });
 }
 scrollBottom();
+
+if (imageInput) {
+    imageInput.addEventListener('change', () => {
+        if (imageInput.files.length > 0) {
+            imageIcon.className = "bi bi-image-fill text-primary";
+            sendBtn.disabled = false;
+        } else {
+            imageIcon.className = "bi bi-image";
+            sendBtn.disabled = !input.value.trim();
+        }
+    });
+}
 
 // ── WebSocket events ─────────────────────────────────────────
 ws.onopen = () => {
@@ -308,25 +329,33 @@ function startPolling() {
           sender_name:   msg.sender_name,
           sender_avatar: msg.sender_avatar,
           timestamp:     msg.timestamp,
+          image_url:     msg.image_url,
         });
       });
     } catch (e) { /* silent */ }
   }, 3000);
 }
 
-// ── Send via AJAX when WS is down ────────────────────────────
-async function sendViaAjax(content) {
+// ── Send via AJAX when WS is down or for Image upload ────────────
+async function sendViaAjax(content, imageFile) {
   const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
   try {
+    const formData = new FormData();
+    formData.append('content', content);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+    
+    sendBtn.disabled = true; // prevent double submit
     const r = await fetch(`/chat/api/send/${ROOM_ID}/`, {
       method:  'POST',
       headers: {
-        'Content-Type':     'application/x-www-form-urlencoded',
         'X-CSRFToken':      csrfToken,
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: new URLSearchParams({ content }),
+      body: formData,
     });
+    
     if (r.status === 201) {
       const msg = await r.json();
       appendMessage({
@@ -336,9 +365,16 @@ async function sendViaAjax(content) {
         sender_name:   msg.sender_name,
         sender_avatar: msg.sender_avatar,
         timestamp:     msg.timestamp,
+        image_url:     msg.image_url,
       });
+    } else if (r.status === 429) {
+      const resp = await r.json();
+      alert(resp.error || 'Rate limit exceeded');
     }
   } catch (e) { console.error('AJAX send failed', e); }
+  finally {
+     sendBtn.disabled = (!input.value.trim() && (!imageInput || imageInput.files.length === 0));
+  }
 }
 
 ws.onclose = (e) => {
@@ -350,18 +386,28 @@ ws.onerror = (e) => {
   startPolling();
 };
 
-// ── Send message ─────────────────────────────────────────────
 function sendMessage() {
   const content = input.value.trim();
-  if (!content) return;
-  if (ws.readyState === WebSocket.OPEN) {
+  let imgFile = null;
+  if (imageInput && imageInput.files.length > 0) {
+      imgFile = imageInput.files[0];
+  }
+  
+  if (!content && !imgFile) return;
+  
+  if (ws.readyState === WebSocket.OPEN && !imgFile) {
     ws.send(JSON.stringify({ type: 'chat_message', content }));
   } else {
-    // AJAX fallback: optimistically render own message, re-sync via poll
-    sendViaAjax(content);
+    // If there is an image, we MUST use AJAX because websockets can't handle files as easily 
+    // without base64 encoding (which is heavy). 
+    sendViaAjax(content, imgFile);
   }
   input.value = '';
   input.style.height = 'auto';
+  if (imageInput) {
+      imageInput.value = '';
+      imageIcon.className = "bi bi-image";
+  }
   sendBtn.disabled = true;
   clearTyping();
 }
@@ -428,11 +474,18 @@ function appendMessage(data) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\n/g,'<br/>');
 
+  const renderedImageHtml = data.image_url 
+    ? `<div class="mb-2"><img src="${data.image_url}" alt="Image" style="max-width: 100%; border-radius: 8px;"></div>`
+    : '';
+
   wrapper.innerHTML = `
     ${avatarHtml}
     <div class="gh-msg-content">
       ${senderNameHtml}
-      <div class="gh-msg-bubble">${safeContent}</div>
+      <div class="gh-msg-bubble">
+        ${renderedImageHtml}
+        ${safeContent}
+      </div>
       <div class="gh-msg-meta">
         <span class="gh-msg-time">${data.timestamp}</span>
         ${seenHtml}

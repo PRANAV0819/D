@@ -30,12 +30,25 @@
       <div>
         <h6 class="gh-job-title">{{ item.title }}</h6>
         <span class="gh-job-company">{{ item.location|default:"No location given" }}</span>
+        {% if item.deposited_at %}
+          <div class="mt-1 small text-success fw-600"><i class="bi bi-box-seam me-1"></i>At: {{ item.deposited_at }}</div>
+        {% endif %}
       </div>
     </div>
     <p class="gh-job-desc mt-2">{{ item.description|truncatechars:80 }}</p>
-    <div class="gh-job-footer">
+    <div class="gh-job-footer align-items-center d-flex justify-content-between">
       <span class="gh-tag {% if item.item_type == 'lost' %}gh-tag-coral{% else %}gh-tag-green{% endif %}">{{ item.get_item_type_display }}</span>
-      <a href="{% url 'lost_found:detail' item.pk %}" class="btn gh-btn-primary btn-sm">View</a>
+      <div class="d-flex gap-2">
+        {% if item.posted_by == request.user and item.status == 'open' %}
+          <form method="post" action="{% url 'lost_found:resolve' item.pk %}" class="d-inline">{% csrf_token %}
+            <button class="btn gh-btn-outline btn-sm py-1 px-2" title="Mark Resolved"><i class="bi bi-check2"></i></button>
+          </form>
+          <form method="post" action="{% url 'lost_found:delete' item.pk %}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this post?');">{% csrf_token %}
+            <button class="btn gh-btn-outline text-danger border-danger btn-sm py-1 px-2" title="Delete Post"><i class="bi bi-trash"></i></button>
+          </form>
+        {% endif %}
+        <a href="{% url 'lost_found:detail' item.pk %}" class="btn gh-btn-primary btn-sm">View</a>
+      </div>
     </div>
   </div>
   {% empty %}

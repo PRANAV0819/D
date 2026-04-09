@@ -188,15 +188,12 @@
       </div>
     </div>
 
-    <!-- Pending requests widget -->
-    {% with pending=user.received_requests.filter %}
     <div class="gh-card mb-3" id="pending-widget">
       <div class="gh-card-header-row mb-2">
         <h6 class="mb-0">Pending requests</h6>
         <a href="{% url 'connections:network' %}" class="gh-link-sm">See all</a>
       </div>
-      {% for req in user.received_requests.all|slice:":3" %}
-      {% if req.status == 'pending' %}
+      {% for req in pending_requests %}
       <div class="gh-mini-request">
         <img src="{{ req.sender.profile.get_avatar_url }}" class="gh-mini-avatar" alt=""/>
         <div class="gh-mini-info">
@@ -210,12 +207,10 @@
           </form>
         </div>
       </div>
-      {% endif %}
       {% empty %}
       <p class="text-muted small mb-0">No pending requests.</p>
       {% endfor %}
     </div>
-    {% endwith %}
 
   </aside>
 </div>

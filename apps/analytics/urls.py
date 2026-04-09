@@ -5,4 +5,5 @@ app_name = 'analytics'
 
 urlpatterns = [
     path('', views.analytics_view, name='dashboard'),
+    path('update-streak/', views.update_streak_view, name='update_streak'),
 ]

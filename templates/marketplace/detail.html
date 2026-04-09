@@ -27,14 +27,45 @@
         </div>
       </div>
       {% if item.seller != request.user and item.status == 'active' %}
-      <a href="{% url 'chat:create_dm' item.seller.pk %}" class="btn gh-btn-primary w-100">
-        <i class="bi bi-chat me-1"></i>Contact Seller
-      </a>
+      <div class="d-flex gap-2">
+          <a href="{% url 'chat:create_dm' item.seller.pk %}" class="btn gh-btn-outline w-50">
+            <i class="bi bi-chat me-1"></i>Contact Seller
+          </a>
+          <button type="button" class="btn gh-btn-primary w-50" data-bs-toggle="modal" data-bs-target="#requestModal">
+            Request to Buy
+          </button>
+      </div>
       {% elif item.seller == request.user %}
       <form method="post" action="{% url 'marketplace:sold' item.pk %}">{% csrf_token %}
         <button class="btn gh-btn-outline w-100">Mark as Sold</button>
       </form>
+      {% else %}
+        <div class="alert alert-warning text-center mt-3 mb-0 py-2">This item is {{ item.get_status_display }}.</div>
       {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Request Modal -->
+<div class="modal fade" id="requestModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Request to Buy: {{ item.title }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'marketplace:request_item' item.pk %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p class="text-muted small">Send a request to {{ item.seller.first_name }} to reserve this item. They can accept or decline.</p>
+          <label class="gh-label">Message (Optional)</label>
+          <textarea name="message" class="gh-input" rows="3" placeholder="I'm interested in buying this. Can we meet at the library?"></textarea>
+        </div>
+        <div class="modal-footer d-flex">
+          <button type="button" class="btn gh-btn-outline flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn gh-btn-primary flex-grow-1">Send Request</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

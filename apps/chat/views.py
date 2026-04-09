@@ -186,6 +186,7 @@ def poll_messages_view(request, room_id):
             'sender_avatar': avatar,
             'timestamp':     msg.created_at.strftime('%H:%M'),
             'is_seen':       msg.is_seen,
+            'image_url':     msg.image.url if msg.image else None,
         })
 
     return JsonResponse({'messages': data, 'user_id': request.user.pk})
@@ -206,12 +207,23 @@ def send_message_view(request, room_id):
     membership = get_object_or_404(RoomMember, room_id=room_id, user=request.user)
     room = membership.room
 
+    from django.core.cache import cache
+    
+    # Rate Limiting: Max 10 messages per minute per user
+    cache_key = f'chat_rate_limit_{request.user.pk}'
+    msg_count = cache.get(cache_key, 0)
+    if msg_count >= 10:
+        return JsonResponse({'error': 'Rate limit exceeded. Please wait.'}, status=429)
+    cache.set(cache_key, msg_count + 1, 60)
+
     content = request.POST.get('content', '').strip()
-    if not content:
+    image = request.FILES.get('image')
+    
+    if not content and not image:
         return JsonResponse({'error': 'empty message'}, status=400)
 
     from .models import Message
-    msg = Message.objects.create(room=room, sender=request.user, content=content)
+    msg = Message.objects.create(room=room, sender=request.user, content=content, image=image)
 
     try:
         avatar = request.user.profile.get_avatar_url()
@@ -225,6 +237,8 @@ def send_message_view(request, room_id):
         'sender_name':   request.user.get_full_name(),
         'sender_avatar': avatar,
         'timestamp':     msg.created_at.strftime('%H:%M'),
+        'image_url':     msg.image.url if msg.image else None,
+        'is_seen':       False,
     }, status=201)
 
 

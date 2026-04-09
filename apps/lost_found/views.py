@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import verified_required, student_required
 from .models import LostFoundItem
@@ -37,9 +38,18 @@ def lf_post_view(request):
 
 
 @student_required
+@require_POST
 def lf_resolve_view(request, pk):
     item = get_object_or_404(LostFoundItem, pk=pk, posted_by=request.user)
     item.status = 'claimed'
     item.save()
-    messages.success(request, 'Marked as resolved.')
+    messages.success(request, 'Marked as resolved/sold.')
+    return redirect('lost_found:list')
+
+@student_required
+@require_POST
+def lf_delete_view(request, pk):
+    item = get_object_or_404(LostFoundItem, pk=pk, posted_by=request.user)
+    item.delete()
+    messages.success(request, 'Post deleted successfully.')
     return redirect('lost_found:list')

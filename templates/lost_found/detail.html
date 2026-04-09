@@ -10,7 +10,8 @@
       <span class="gh-tag gh-tag-gray">{{ item.get_status_display }}</span>
     </div>
     <h2 class="h4">{{ item.title }}</h2>
-    {% if item.location %}<p class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ item.location }}</p>{% endif %}
+    {% if item.location %}<p class="text-muted mb-1"><i class="bi bi-geo-alt me-1"></i>Found at: {{ item.location }}</p>{% endif %}
+    {% if item.deposited_at %}<div class="alert alert-success py-2 px-3 small d-flex align-items-center mb-3"><i class="bi bi-info-circle-fill me-2"></i>Deposited at: <strong>{{ item.deposited_at }}</strong></div>{% endif %}
     <p>{{ item.description }}</p>
     <hr/>
     <div class="d-flex align-items-center gap-2">
@@ -23,8 +24,11 @@
       <a href="{% url 'chat:create_dm' item.posted_by.pk %}" class="btn gh-btn-primary btn-sm"><i class="bi bi-chat me-1"></i>Contact</a>
       {% endif %}
       {% if item.posted_by == request.user and item.status == 'open' %}
-      <form method="post" action="{% url 'lost_found:resolve' item.pk %}">{% csrf_token %}
+      <form method="post" action="{% url 'lost_found:resolve' item.pk %}" class="d-inline">{% csrf_token %}
         <button class="btn gh-btn-outline btn-sm">Mark Resolved</button>
+      </form>
+      <form method="post" action="{% url 'lost_found:delete' item.pk %}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this post?');">{% csrf_token %}
+        <button class="btn gh-btn-outline text-danger border-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
       </form>
       {% endif %}
     </div>

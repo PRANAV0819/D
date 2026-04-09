@@ -838,10 +838,29 @@ textarea {
     max-width: 980px;
 }
 
+.gh-feed-main {
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Custom, sleek scrollbar for the feed */
+.gh-feed-main::-webkit-scrollbar {
+    width: 6px;
+}
+.gh-feed-main::-webkit-scrollbar-track {
+    background: transparent;
+}
+.gh-feed-main::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+}
+
 .gh-feed-sidebar {
     position: sticky;
     top: 1.5rem;
     height: max-content;
+    align-self: start;
 }
 
 @media (max-width: 900px) {

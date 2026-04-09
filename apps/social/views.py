@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.db.models import Q
 
 from apps.accounts.decorators import verified_required
+from apps.accounts.models import User
 from .models import Post, Like, Comment
 from .forms import PostForm, CommentForm
 
@@ -47,11 +48,18 @@ def feed_view(request):
     for post in posts:
         post.user_liked = post.is_liked_by(request.user)
 
+    # Fetch actual User objects for connections (for the Share modal)
+    connections = User.objects.filter(pk__in=user_ids).exclude(pk=request.user.pk).select_related('profile').order_by('first_name')
+
     post_form = PostForm()
+    pending_requests = request.user.received_requests.filter(status='pending')[:3]
+
     return render(request, 'social/feed.html', {
-        'posts':     posts,
-        'post_form': post_form,
-        'conn_count': conn_count,
+        'posts':            posts,
+        'post_form':        post_form,
+        'conn_count':       conn_count,
+        'connections':      connections,
+        'pending_requests': pending_requests,
     })
 
 
@@ -146,3 +154,39 @@ def post_detail_view(request, post_id):
         'comments': comments,
         'form':     form,
     })
+
+
+# ── Share post via Chat ───────────────────────────────────────────────
+
+@login_required
+@verified_required
+@require_POST
+def share_post_view(request, post_id):
+    from apps.chat.models import ChatRoom, Message
+    from django.urls import reverse
+
+    post = get_object_or_404(Post, pk=post_id)
+    recipient_ids = request.POST.getlist('recipient_ids')
+
+    if not recipient_ids:
+        messages.error(request, 'No recipients selected.')
+        return redirect('social:feed')
+
+    # Send a DM to each selected recipient
+    post_url = request.build_absolute_uri(reverse('social:post_detail', args=[post.id]))
+    share_text = f"Hey, check out this post!\n\n{post_url}"
+    count = 0
+
+    for r_id in recipient_ids:
+        recipient = User.objects.filter(pk=r_id).first()
+        if recipient and recipient != request.user:
+            room, _ = ChatRoom.get_or_create_dm(request.user, recipient)
+            Message.objects.create(room=room, sender=request.user, content=share_text)
+            count += 1
+
+    if count > 0:
+        messages.success(request, f'Post shared with {count} connection(s).')
+    else:
+        messages.error(request, 'Could not share post.')
+
+    return redirect('social:feed')

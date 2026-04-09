@@ -23,25 +23,88 @@
   </form>
 </div>
 
-<div class="gh-resources-list">
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
   {% for res in resources %}
-  <div class="gh-card mb-2 d-flex align-items-center gap-3">
-    <div class="gh-resource-icon"><i class="bi bi-file-earmark-pdf-fill"></i></div>
-    <div class="flex-grow-1">
-      <h6 class="mb-0">{{ res.title }}</h6>
-      <span class="text-muted small">
-        {{ res.get_category_display }}
-        {% if res.department %} · {{ res.department.code }}{% endif %}
-        {% if res.subject %} · {{ res.subject }}{% endif %}
-        · {{ res.download_count }} downloads
-      </span>
+  <div class="col">
+    <div class="gh-card h-100 resource-card" style="cursor:pointer; transition:transform 0.2s;" data-res-id="{{ res.pk }}" 
+         data-title="{{ res.title }}" 
+         data-desc="{{ res.description|default:'No description provided.' }}" 
+         data-cat="{{ res.get_category_display }}" 
+         data-dept="{{ res.department.code|default:'N/A' }}"
+         data-subject="{{ res.subject|default:'N/A' }}"
+         data-author="{{ res.uploaded_by.get_full_name }}"
+         data-time="{{ res.created_at|date:'M d, Y' }}"
+         data-downloads="{{ res.download_count }}"
+         data-downloadurl="{% url 'resources:download' res.pk %}"
+         onclick="openResourceModal(this)">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="gh-resource-icon" style="font-size:1.5rem; color:var(--gh-blue);"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+        <h6 class="mb-0 text-truncate" style="flex:1;" title="{{ res.title }}">{{ res.title }}</h6>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <span class="gh-tag gh-tag-blue">{{ res.get_category_display }}</span>
+        <span class="text-muted small"><i class="bi bi-download me-1"></i>{{ res.download_count }}</span>
+      </div>
     </div>
-    <a href="{% url 'resources:download' res.pk %}" class="btn gh-btn-primary btn-sm">
-      <i class="bi bi-download me-1"></i>Download
-    </a>
   </div>
   {% empty %}
-  <div class="gh-empty-state"><i class="bi bi-book"></i><h5>No resources yet</h5></div>
+  <div class="col-12">
+    <div class="gh-empty-state"><i class="bi bi-book"></i><h5>No resources yet</h5></div>
+  </div>
   {% endfor %}
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="resourceDetailModal" tabindex="-1" aria-labelledby="resourceDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resModalTitle">Resource Title</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-4" id="resModalDesc">Description here</p>
+        <div class="row g-2 mb-3">
+          <div class="col-6"><span class="text-muted small">Category:</span><br><strong id="resModalCat">...</strong></div>
+          <div class="col-6"><span class="text-muted small">Department:</span><br><strong id="resModalDept">...</strong></div>
+          <div class="col-6"><span class="text-muted small">Subject:</span><br><strong id="resModalSubj">...</strong></div>
+          <div class="col-6"><span class="text-muted small">Downloads:</span><br><strong id="resModalDl">...</strong></div>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted"><i class="bi bi-person me-1"></i><span id="resModalAuthor">Author</span></span>
+            <span class="small text-muted"><i class="bi bi-clock me-1"></i><span id="resModalTime">Time</span></span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="#" id="resModalDownloadBtn" class="btn gh-btn-primary w-100"><i class="bi bi-download me-2"></i>Download File</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openResourceModal(element) {
+    document.getElementById('resModalTitle').textContent = element.dataset.title;
+    document.getElementById('resModalDesc').textContent = element.dataset.desc;
+    document.getElementById('resModalCat').textContent = element.dataset.cat;
+    document.getElementById('resModalDept').textContent = element.dataset.dept;
+    document.getElementById('resModalSubj').textContent = element.dataset.subject;
+    document.getElementById('resModalDl').textContent = element.dataset.downloads;
+    document.getElementById('resModalAuthor').textContent = element.dataset.author;
+    document.getElementById('resModalTime').textContent = element.dataset.time;
+    document.getElementById('resModalDownloadBtn').href = element.dataset.downloadurl;
+    
+    var resModal = new bootstrap.Modal(document.getElementById('resourceDetailModal'));
+    resModal.show();
+  }
+  
+  // Add minor hover effect styling if not already defined globally
+  document.querySelectorAll('.resource-card').forEach(card => {
+      card.addEventListener('mouseenter', () => card.style.transform = 'translateY(-3px)');
+      card.addEventListener('mouseleave', () => card.style.transform = 'translateY(0)');
+  });
+</script>
 {% endblock %}
