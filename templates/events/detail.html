@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}{{ event.title }} — GrowthHive{% endblock %}
+
+{% block content %}
+<div style="max-width:900px;">
+
+  <a href="{% url 'events:list' %}" class="back-btn mb-3 d-inline-flex align-items-center gap-2 text-decoration-none"
+     style="color:var(--gh-muted); font-size:.875rem; font-weight:600;">
+    <i class="bi bi-arrow-left"></i> Back to Events
+  </a>
+
+  {% if event.banner %}
+  <img src="{{ event.banner.url }}" alt="{{ event.title }}" class="w-100 rounded-3 mb-4"
+       style="max-height:320px; object-fit:cover;">
+  {% endif %}
+
+  <div class="row g-3">
+    <!-- Left: Main Info -->
+    <div class="col-lg-8">
+      <div class="gh-card mb-3">
+        <div class="gh-job-tags mb-3">
+          <span class="gh-tag gh-tag-blue">{{ event.get_event_type_display }}</span>
+          {% if event.is_online %}
+          <span class="gh-tag gh-tag-teal"><i class="bi bi-camera-video me-1"></i>Online</span>
+          {% else %}
+          <span class="gh-tag gh-tag-gray"><i class="bi bi-geo-alt me-1"></i>In-Person</span>
+          {% endif %}
+          <span class="gh-tag gh-tag-gray">{{ event.registration_count }} registered</span>
+        </div>
+
+        <h1 class="h3 mb-2">{{ event.title }}</h1>
+        <p class="text-muted small mb-4">
+          Organised by
+          <a href="{% url 'accounts:profile_detail' event.organizer.pk %}" class="fw-semibold text-decoration-none">
+            {{ event.organizer.get_full_name }}
+          </a>
+        </p>
+
+        <h6>About this Event</h6>
+        <p style="white-space:pre-wrap; line-height:1.75;">{{ event.description }}</p>
+      </div>
+    </div>
+
+    <!-- Right: Actions & Details -->
+    <div class="col-lg-4">
+
+      <!-- Register Card -->
+      <div class="gh-card mb-3">
+        <h6 class="gh-card-title">Registration</h6>
+
+        {% if registered %}
+        <div class="alert alert-success py-2 mb-3">
+          <i class="bi bi-check-circle-fill me-1"></i> You're registered!
+        </div>
+        {% else %}
+        <form method="post" action="{% url 'events:register' event.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn gh-btn-primary w-100">
+            <i class="bi bi-calendar-check me-1"></i> Register Now
+          </button>
+        </form>
+        {% endif %}
+
+        {% if event.registration_link %}
+        <a href="{{ event.registration_link }}" target="_blank"
+           class="btn gh-btn-outline w-100 mt-2">
+          <i class="bi bi-box-arrow-up-right me-1"></i> External Registration
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Event Details Card -->
+      <div class="gh-card mb-3">
+        <h6 class="gh-card-title">Event Details</h6>
+        <ul class="list-unstyled mb-0" style="font-size:.875rem; line-height:2;">
+          <li>
+            <i class="bi bi-calendar-event me-2" style="color:var(--gh-blue);"></i>
+            <strong>Starts:</strong> {{ event.starts_at|date:"D, M d Y — H:i" }}
+          </li>
+          {% if event.ends_at %}
+          <li>
+            <i class="bi bi-calendar-x me-2" style="color:var(--gh-muted);"></i>
+            <strong>Ends:</strong> {{ event.ends_at|date:"D, M d Y — H:i" }}
+          </li>
+          {% endif %}
+          {% if event.location %}
+          <li>
+            <i class="bi bi-geo-alt me-2" style="color:var(--gh-blue);"></i>
+            <strong>Location:</strong> {{ event.location }}
+          </li>
+          {% endif %}
+          {% if event.max_participants %}
+          <li>
+            <i class="bi bi-people me-2" style="color:var(--gh-blue);"></i>
+            <strong>Capacity:</strong> {{ event.max_participants }} seats
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Organiser Card -->
+      <div class="gh-card">
+        <h6 class="gh-card-title">Organiser</h6>
+        <a href="{% url 'accounts:profile_detail' event.organizer.pk %}"
+           class="d-flex align-items-center gap-2 text-decoration-none">
+          <img src="{{ event.organizer.profile.get_avatar_url }}"
+               style="width:40px;height:40px;border-radius:50%;object-fit:cover;" alt="">
+          <div>
+            <span class="fw-semibold d-block" style="color:var(--gh-text);">
+              {{ event.organizer.get_full_name }}
+            </span>
+            <span class="text-muted small">{{ event.organizer.get_role_display }}</span>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
