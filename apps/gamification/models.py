@@ -36,6 +36,7 @@ class UserActivity(models.Model):
         UPLOAD      = 'upload',      'Uploaded resource'
         PROJECT     = 'project',     'Joined a project'
         LOGIN       = 'login',       'Daily login'
+        STREAK_UPDATE = 'streak_update', 'Updated streak'
 
     user          = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='activities')
     action        = models.CharField(max_length=30, choices=Action.choices)
@@ -51,6 +52,7 @@ class UserActivity(models.Model):
         'post': 10, 'comment': 5, 'like': 2,
         'connect': 8, 'job_apply': 15, 'upload': 12,
         'project': 20, 'login': 3,
+        'streak_update': 10,
     }
 
     @classmethod

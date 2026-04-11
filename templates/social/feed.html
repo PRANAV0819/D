@@ -1,78 +1,121 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Feed — GrowthHive{% endblock %}
+{% block title %}Home — GrowthHive{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/network.css' %}">
+<link rel="stylesheet" href="{% static 'css/feed.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="gh-feed-layout">
+<div class="feed-layout">
 
-  <!-- ── LEFT: Feed ── -->
-  <div class="gh-feed-main">
+  <!-- ══════════════════════ LEFT: FEED ══════════════════════ -->
+  <div class="feed-main">
 
-    <!-- Create post card -->
-    <div class="gh-card gh-compose-card mb-3">
-      <div class="gh-compose-top">
-        <img src="{{ user.profile.get_avatar_url }}" class="gh-compose-avatar" alt="avatar"/>
-        <button class="gh-compose-trigger" id="composeToggle">
+    <!-- Compose Card -->
+    <div class="compose-card">
+      <div class="compose-top">
+        <img src="{{ user.profile.get_avatar_url }}" class="compose-avatar" alt="Your avatar">
+        <button class="compose-trigger" id="composeToggle">
           What's on your mind, {{ user.first_name }}?
         </button>
       </div>
 
-      <!-- Expanded form (hidden by default) -->
-      <div class="gh-compose-form" id="composeForm" style="display:none;">
-        <form method="post" action="{% url 'social:create_post' %}" enctype="multipart/form-data">
+      <!-- Expanded compose form -->
+      <div class="compose-expanded" id="composeExpanded">
+        <div class="compose-divider"></div>
+        <form method="post" action="{% url 'social:create_post' %}" enctype="multipart/form-data" id="postForm">
           {% csrf_token %}
-          {{ post_form.content }}
-          <div class="gh-compose-actions">
-            <div class="gh-compose-meta">
-              <label class="gh-compose-attach" title="Add image">
-                <i class="bi bi-image"></i>
+          <textarea
+            name="content"
+            class="compose-textarea"
+            id="composeTextarea"
+            placeholder="Share something with the community…"
+            maxlength="3000"
+            rows="3"
+          ></textarea>
+          <div class="compose-toolbar">
+            <div style="display:flex; gap:.25rem; align-items:center;">
+              <label class="compose-attach-label" title="Add image">
+                <i class="bi bi-image-fill"></i> Photo
                 {{ post_form.image }}
               </label>
-              <div class="gh-compose-vis">
+              <label class="compose-attach-label" title="Audience" style="gap:.35rem;">
                 <i class="bi bi-globe2"></i>
                 {{ post_form.visibility }}
-              </div>
+              </label>
             </div>
-            <div class="gh-compose-btns">
-              <button type="button" class="btn gh-btn-outline btn-sm" id="composeCancel">Cancel</button>
-              <button type="submit" class="btn gh-btn-primary btn-sm">Post</button>
+            <div style="display:flex; gap:.5rem; align-items:center;">
+              <button type="button" class="compose-cancel-btn" id="composeCancel">Cancel</button>
+              <button type="submit" class="compose-submit-btn">
+                <i class="bi bi-send-fill me-1"></i>Post
+              </button>
             </div>
           </div>
         </form>
+      </div>
+
+      <!-- Quick action shortcuts (only when collapsed) -->
+      <div id="composeShortcuts">
+        <div class="compose-divider"></div>
+        <div class="compose-quick-btns">
+          <button class="compose-quick-btn compose-quick-btn--photo" id="shortcutPhoto">
+            <i class="bi bi-image-fill"></i> Photo
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Posts -->
     {% for post in posts %}
-    <article class="gh-card gh-post-card mb-3" id="post-{{ post.id }}">
+    <article class="post-card" id="post-{{ post.id }}">
 
-      <!-- Post header -->
-      <div class="gh-post-header">
+      <!-- Post Header -->
+      <div class="post-header">
         <a href="{% url 'accounts:profile_detail' post.author.pk %}">
-          <img src="{{ post.author.profile.get_avatar_url }}" class="gh-post-avatar" alt="avatar"/>
+          <img src="{{ post.author.profile.get_avatar_url }}" class="post-avatar" alt="{{ post.author.get_full_name }}">
         </a>
-        <div class="gh-post-meta">
-          <a href="{% url 'accounts:profile_detail' post.author.pk %}" class="gh-post-author">
+        <div class="post-meta">
+          <a href="{% url 'accounts:profile_detail' post.author.pk %}" class="post-author">
             {{ post.author.get_full_name }}
           </a>
-          <span class="gh-post-role">
-            {{ post.author.get_role_display }}
-            {% if post.author.department %} · {{ post.author.get_department_display }}{% endif %}
-          </span>
-          <span class="gh-post-time">{{ post.created_at|timesince }} ago</span>
+          <div class="post-author-sub">
+            <span class="post-role-badge">{{ post.author.get_role_display }}</span>
+            {% if post.author.department %}
+            <span>· {{ post.author.get_department_display }}</span>
+            {% endif %}
+            <span class="post-time">
+              <i class="bi bi-clock" style="font-size:.65rem;"></i>
+              {{ post.created_at|timesince }} ago
+            </span>
+            {% if post.visibility == 'connected' %}
+            <span class="post-vis-badge">
+              <i class="bi bi-people-fill"></i> Connections
+            </span>
+            {% else %}
+            <span class="post-vis-badge">
+              <i class="bi bi-globe2"></i> Public
+            </span>
+            {% endif %}
+          </div>
         </div>
+
         {% if post.author == user %}
-        <div class="gh-post-menu ms-auto">
-          <button class="gh-icon-btn" data-bs-toggle="dropdown">
+        <div class="post-menu">
+          <button class="post-menu-btn" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-three-dots"></i>
           </button>
-          <ul class="dropdown-menu dropdown-menu-end">
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:160px; border-radius:10px;">
             <li>
               <form method="post" action="{% url 'social:delete_post' post.id %}">
                 {% csrf_token %}
-                <button type="submit" class="dropdown-item text-danger"
-                        onclick="return confirm('Delete this post?')">
-                  <i class="bi bi-trash me-2"></i>Delete post
+                <button
+                  type="submit"
+                  class="dropdown-item text-danger d-flex align-items-center gap-2"
+                  onclick="return confirm('Delete this post?')"
+                >
+                  <i class="bi bi-trash3"></i> Delete post
                 </button>
               </form>
             </li>
@@ -81,72 +124,83 @@
         {% endif %}
       </div>
 
-      <!-- Post body -->
-      <div class="gh-post-body">
+      <!-- Post Body -->
+      <div class="post-body">
         <p>{{ post.content|linebreaksbr }}</p>
-        {% if post.image %}
-        <div class="gh-post-image">
-          <img src="{{ post.image.url }}" alt="post image" loading="lazy"/>
-        </div>
-        {% endif %}
       </div>
 
-      <!-- Like / comment counts -->
-      <div class="gh-post-stats">
-        <span class="gh-post-stat-likes" id="like-count-{{ post.id }}">
+      {% if post.image %}
+      <div class="post-image">
+        <img src="{{ post.image.url }}" alt="Post image" loading="lazy">
+      </div>
+      {% endif %}
+
+      <!-- Reaction counts -->
+      <div class="post-reactions">
+        <span class="post-reaction-likes" id="like-count-{{ post.id }}">
           {% if post.like_count > 0 %}
-          <i class="bi bi-hand-thumbs-up-fill text-primary"></i>
-          {{ post.like_count }}
+          <i class="bi bi-hand-thumbs-up-fill"></i>
+          <span>{{ post.like_count }}</span>
           {% endif %}
         </span>
-        <a href="{% url 'social:post_detail' post.id %}" class="gh-post-stat-comments ms-auto">
-          {% if post.comment_count > 0 %}{{ post.comment_count }} comment{{ post.comment_count|pluralize }}{% endif %}
+        <a href="{% url 'social:post_detail' post.id %}" class="post-reaction-link">
+          {% if post.comment_count > 0 %}
+          {{ post.comment_count }} comment{{ post.comment_count|pluralize }}
+          {% endif %}
         </a>
       </div>
 
-      <!-- Action bar -->
-      <div class="gh-post-actions">
-        <button class="gh-post-action-btn gh-like-btn {% if post.user_liked %}liked{% endif %}"
-                data-post-id="{{ post.id }}"
-                data-liked="{{ post.user_liked|lower }}">
+      <!-- Action Bar -->
+      <div class="post-actions">
+        <button
+          class="post-action-btn {% if post.user_liked %}liked{% endif %} gh-like-btn"
+          data-post-id="{{ post.id }}"
+          data-liked="{{ post.user_liked|lower }}"
+        >
           <i class="bi bi-hand-thumbs-up{% if post.user_liked %}-fill{% endif %}"></i>
           <span class="gh-like-label">Like</span>
         </button>
-        <button class="gh-post-action-btn" onclick="toggleComments({{ post.id }})">
-          <i class="bi bi-chat"></i> Comment
+        <button class="post-action-btn" onclick="toggleComments({{ post.id }})">
+          <i class="bi bi-chat-dots"></i> Comment
         </button>
-        <button class="gh-post-action-btn">
+        <button class="post-action-btn" onclick="openShareModal({{ post.id }}, '{{ post.content|truncatechars:80|escapejs }}', '{% if post.image %}{{ post.image.url }}{% endif %}')">
           <i class="bi bi-share"></i> Share
         </button>
       </div>
 
-      <!-- Comments section (collapsed) -->
-      <div class="gh-comments-section" id="comments-{{ post.id }}" style="display:none;">
-        <!-- Existing comments -->
+      <!-- Comments Section -->
+      <div class="comments-section" id="comments-{{ post.id }}">
         {% for comment in post.comments.all %}
-        <div class="gh-comment">
-          <img src="{{ comment.author.profile.get_avatar_url }}" class="gh-comment-avatar" alt=""/>
-          <div class="gh-comment-bubble">
-            <span class="gh-comment-author">{{ comment.author.get_full_name }}</span>
-            <p class="gh-comment-text">{{ comment.content }}</p>
+        <div class="comment-item">
+          <img src="{{ comment.author.profile.get_avatar_url }}" class="comment-avatar" alt="">
+          <div class="comment-bubble">
+            <span class="comment-author">{{ comment.author.get_full_name }}</span>
+            <p class="comment-text">{{ comment.content }}</p>
           </div>
           {% if comment.author == user %}
-          <form method="post" action="{% url 'social:delete_comment' comment.id %}" class="ms-1">
+          <form method="post" action="{% url 'social:delete_comment' comment.id %}">
             {% csrf_token %}
-            <button type="submit" class="gh-comment-delete" title="Delete">
-              <i class="bi bi-x"></i>
+            <button type="submit" class="comment-delete-btn" title="Delete">
+              <i class="bi bi-x-lg"></i>
             </button>
           </form>
           {% endif %}
         </div>
         {% endfor %}
+
         <!-- New comment input -->
-        <form method="post" action="{% url 'social:add_comment' post.id %}" class="gh-comment-form">
+        <form method="post" action="{% url 'social:add_comment' post.id %}" class="comment-form">
           {% csrf_token %}
-          <img src="{{ user.profile.get_avatar_url }}" class="gh-comment-avatar" alt=""/>
-          <input type="text" name="content" class="gh-comment-input"
-                 placeholder="Write a comment…" required autocomplete="off"/>
-          <button type="submit" class="gh-comment-submit">
+          <img src="{{ user.profile.get_avatar_url }}" class="comment-avatar" alt="">
+          <input
+            type="text"
+            name="content"
+            class="comment-input"
+            placeholder="Write a comment…"
+            required
+            autocomplete="off"
+          >
+          <button type="submit" class="comment-send-btn">
             <i class="bi bi-send-fill"></i>
           </button>
         </form>
@@ -154,61 +208,142 @@
 
     </article>
     {% empty %}
-    <div class="gh-empty-state">
-      <i class="bi bi-broadcast"></i>
-      <h5>Your feed is empty</h5>
-      <p>Connect with people or be the first to post something!</p>
-      <a href="{% url 'connections:network' %}" class="btn gh-btn-primary mt-2">Find people</a>
+    <div class="feed-empty">
+      <span class="feed-empty__icon"><i class="bi bi-broadcast"></i></span>
+      <div class="feed-empty__title">Your feed is empty</div>
+      <p class="feed-empty__sub">Connect with people or be the first to post something!</p>
+      <a href="{% url 'connections:network' %}" class="net-btn net-btn--primary" style="display:inline-flex; width:auto;">
+        <i class="bi bi-people"></i> Find People
+      </a>
     </div>
-    {% endfor %}
+{% endfor %}
+  </div>{# end feed-main #}
+
+<!-- ══════════════════════════════════════════════════
+     SHARE MODAL
+══════════════════════════════════════════════════ -->
+<div id="shareModal" class="share-modal-overlay" style="display:none;" onclick="closeShareModal(event)">
+  <div class="share-modal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+
+    <!-- Header -->
+    <div class="share-modal__header">
+      <h5 class="share-modal__title" id="shareModalTitle">
+        <i class="bi bi-share-fill me-2" style="color:var(--gh-blue);"></i>Share Post
+      </h5>
+      <button class="share-modal__close" onclick="closeShareModal()" aria-label="Close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Post preview -->
+    <div class="share-modal__preview" id="sharePreview">
+      <div class="share-preview-text" id="sharePreviewText"></div>
+      <div class="share-preview-img-wrap" id="sharePreviewImgWrap" style="display:none;">
+        <img id="sharePreviewImg" src="" alt="Post image">
+      </div>
+    </div>
+
+    <!-- Optional message -->
+    <div class="share-modal__section">
+      <label class="share-modal__label">Add a message (optional)</label>
+      <textarea id="shareMessage" class="share-modal__textarea" placeholder="Write something about this post…" rows="2" maxlength="300"></textarea>
+    </div>
+
+    <!-- Search connections -->
+    <div class="share-modal__section">
+      <label class="share-modal__label">Send to connections</label>
+      <div class="share-search-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" id="shareSearch" class="share-search-input" placeholder="Search connections…" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- Connection list -->
+    <div class="share-modal__conn-list" id="shareConnList">
+      {% for conn in connections %}
+      <label class="share-conn-item" data-name="{{ conn.get_full_name|lower }}">
+        <input type="checkbox" class="share-conn-checkbox" value="{{ conn.pk }}">
+        <img src="{{ conn.profile.get_avatar_url }}" class="share-conn-avatar" alt="">
+        <div class="share-conn-info">
+          <span class="share-conn-name">{{ conn.get_full_name }}</span>
+          <span class="share-conn-role">{{ conn.get_role_display }}</span>
+        </div>
+        <span class="share-conn-check"><i class="bi bi-check-lg"></i></span>
+      </label>
+      {% empty %}
+      <div class="share-conn-empty">No connections yet. <a href="{% url 'connections:network' %}">Find people</a></div>
+      {% endfor %}
+    </div>
+
+    <!-- Footer -->
+    <div class="share-modal__footer">
+      <span class="share-modal__selected-count" id="shareSelectedCount">0 selected</span>
+      <button class="share-modal__cancel" onclick="closeShareModal()">Cancel</button>
+      <button class="share-modal__send" id="shareSubmitBtn" onclick="submitShare()" disabled>
+        <i class="bi bi-send-fill me-1"></i> Send
+      </button>
+    </div>
   </div>
+</div>
 
-  <!-- ── RIGHT: Sidebar ── -->
-  <aside class="gh-feed-sidebar">
+  {# Hidden CSRF token for JS -->
+  <input type="hidden" id="csrfMiddlewareToken" value="{% csrf_token %}">
+  <!-- ══════════════════════ RIGHT: SIDEBAR ══════════════════════ -->
+  <aside class="feed-sidebar">
 
-    <!-- Mini profile card -->
-    <div class="gh-card gh-feed-profile-card mb-3">
-      <div class="gh-feed-profile-banner"></div>
-      <div class="gh-feed-profile-body">
-        <img src="{{ user.profile.get_avatar_url }}" class="gh-feed-avatar" alt="avatar"/>
-        <a href="{% url 'accounts:profile' %}" class="gh-feed-name">
+    <!-- Mini Profile Card -->
+    <div class="sidebar-profile-card">
+      <div class="sidebar-profile-banner sidebar-profile-banner--{{ user.role }}"></div>
+      <div class="sidebar-profile-body">
+        <a href="{% url 'accounts:profile' %}">
+          <img src="{{ user.profile.get_avatar_url }}" class="sidebar-profile-avatar" alt="Your avatar">
+        </a>
+        <a href="{% url 'accounts:profile' %}" class="sidebar-profile-name">
           {{ user.get_full_name }}
         </a>
-        <span class="gh-feed-role">{{ user.get_role_display }}</span>
-        <div class="gh-feed-stats">
-          <a href="{% url 'connections:network' %}" class="gh-feed-stat">
-            <span class="val" id="conn-count">{{ conn_count }}</span>
-            <span class="lbl">Connections</span>
+        <span class="sidebar-profile-role">{{ user.get_role_display }}</span>
+
+        <div class="sidebar-stats">
+          <a href="{% url 'connections:network' %}" class="sidebar-stat">
+            <span class="sidebar-stat__val" id="conn-count">{{ conn_count }}</span>
+            <span class="sidebar-stat__label">Connections</span>
           </a>
-          <div class="gh-feed-stat">
-            <span class="val">{{ user.profile.points }}</span>
-            <span class="lbl">Points</span>
+          <div class="sidebar-stat">
+            <span class="sidebar-stat__val">{{ user.profile.points }}</span>
+            <span class="sidebar-stat__label">Points</span>
           </div>
         </div>
+
+        <a href="{% url 'accounts:profile' %}" class="sidebar-profile-link">
+          <i class="bi bi-person-badge"></i> View My Profile
+        </a>
       </div>
     </div>
 
-    <div class="gh-card mb-3" id="pending-widget">
-      <div class="gh-card-header-row mb-2">
-        <h6 class="mb-0">Pending requests</h6>
-        <a href="{% url 'connections:network' %}" class="gh-link-sm">See all</a>
+    <!-- Pending Requests Widget -->
+    <div class="sidebar-card">
+      <div class="sidebar-card__header">
+        <h6 class="sidebar-card__title">
+          <i class="bi bi-person-plus-fill me-1" style="color: var(--gh-blue);"></i>
+          Pending Requests
+        </h6>
+        <a href="{% url 'connections:network' %}" class="sidebar-card__link">See all</a>
       </div>
+
       {% for req in pending_requests %}
-      <div class="gh-mini-request">
-        <img src="{{ req.sender.profile.get_avatar_url }}" class="gh-mini-avatar" alt=""/>
-        <div class="gh-mini-info">
-          <span class="gh-mini-name">{{ req.sender.get_full_name }}</span>
-          <span class="gh-mini-sub">{{ req.sender.get_role_display }}</span>
+      <div class="mini-request">
+        <img src="{{ req.sender.profile.get_avatar_url }}" class="mini-request-avatar" alt="">
+        <div class="mini-request-info">
+          <span class="mini-request-name">{{ req.sender.get_full_name }}</span>
+          <span class="mini-request-role">{{ req.sender.get_role_display }}</span>
         </div>
-        <div class="gh-mini-actions">
-          <form method="post" action="{% url 'connections:accept' req.pk %}">
-            {% csrf_token %}
-            <button class="btn gh-btn-primary btn-xs">Accept</button>
-          </form>
-        </div>
+        <form method="post" action="{% url 'connections:accept' req.pk %}">
+          {% csrf_token %}
+          <button class="mini-accept-btn">Accept</button>
+        </form>
       </div>
       {% empty %}
-      <p class="text-muted small mb-0">No pending requests.</p>
+      <p class="sidebar-empty-text">No pending requests.</p>
       {% endfor %}
     </div>
 
@@ -218,59 +353,195 @@
 
 {% block extra_js %}
 <script>
-// ── Compose toggle ─────────────────────────────────
-const composeToggle = document.getElementById('composeToggle');
-const composeForm   = document.getElementById('composeForm');
-const composeCancel = document.getElementById('composeCancel');
-if (composeToggle) {
-  composeToggle.addEventListener('click', () => {
-    composeForm.style.display = 'block';
-    composeToggle.style.display = 'none';
-    composeForm.querySelector('textarea').focus();
-  });
-  composeCancel.addEventListener('click', () => {
-    composeForm.style.display = 'none';
-    composeToggle.style.display = 'block';
-  });
+// ── Compose expand / collapse ────────────────────────────
+const composeToggle    = document.getElementById('composeToggle');
+const composeExpanded  = document.getElementById('composeExpanded');
+const composeCancel    = document.getElementById('composeCancel');
+const composeShortcuts = document.getElementById('composeShortcuts');
+const shortcutPhoto    = document.getElementById('shortcutPhoto');
+
+function openCompose() {
+  composeExpanded.classList.add('open');
+  composeToggle.style.display = 'none';
+  composeShortcuts.style.display = 'none';
+  setTimeout(() => document.getElementById('composeTextarea')?.focus(), 50);
 }
 
-// ── Comment toggle ────────────────────────────────
+function closeCompose() {
+  composeExpanded.classList.remove('open');
+  composeToggle.style.display = '';
+  composeShortcuts.style.display = '';
+}
+
+if (composeToggle)   composeToggle.addEventListener('click', openCompose);
+if (composeCancel)   composeCancel.addEventListener('click', closeCompose);
+if (shortcutPhoto)   shortcutPhoto.addEventListener('click', () => {
+  openCompose();
+  // Trigger file input for photo shortcut
+  document.querySelector('#postForm input[type="file"]')?.click();
+});
+
+// ── Comment toggle ───────────────────────────────────────
 function toggleComments(postId) {
   const el = document.getElementById(`comments-${postId}`);
   if (!el) return;
-  const visible = el.style.display !== 'none';
-  el.style.display = visible ? 'none' : 'block';
-  if (!visible) el.querySelector('input')?.focus();
+  const isOpen = el.classList.contains('open');
+  el.classList.toggle('open', !isOpen);
+  if (!isOpen) {
+    el.querySelector('.comment-input')?.focus();
+  }
 }
 
-// ── AJAX like ─────────────────────────────────────
+// ── AJAX Like ────────────────────────────────────────────
 document.querySelectorAll('.gh-like-btn').forEach(btn => {
   btn.addEventListener('click', async function () {
     const postId = this.dataset.postId;
-    const res    = await fetch(`/feed/post/${postId}/like/`, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': getCookie('csrftoken') },
-    });
-    const data = await res.json();
+    try {
+      const res  = await fetch(`/feed/post/${postId}/like/`, {
+        method:  'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      });
+      const data = await res.json();
 
-    // Toggle button state
-    this.classList.toggle('liked', data.liked);
-    const icon = this.querySelector('i');
-    icon.className = data.liked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up';
+      this.classList.toggle('liked', data.liked);
+      const icon = this.querySelector('i');
+      icon.className = data.liked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up';
 
-    // Update count
-    const countEl = document.getElementById(`like-count-${postId}`);
-    countEl.innerHTML = data.like_count > 0
-      ? `<i class="bi bi-hand-thumbs-up-fill text-primary"></i> ${data.like_count}`
-      : '';
+      const countEl = document.getElementById(`like-count-${postId}`);
+      if (countEl) {
+        countEl.innerHTML = data.like_count > 0
+          ? `<i class="bi bi-hand-thumbs-up-fill"></i><span>${data.like_count}</span>`
+          : '';
+      }
+
+      // Micro-bounce animation on like
+      if (data.liked) {
+        this.animate([
+          { transform: 'scale(1)' },
+          { transform: 'scale(1.25)' },
+          { transform: 'scale(1)' },
+        ], { duration: 300, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' });
+      }
+    } catch(e) { console.error('Like failed:', e); }
   });
 });
 
-// Helper: read cookie
 function getCookie(name) {
   const v = `; ${document.cookie}`;
   const parts = v.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+// ── Share Modal ──────────────────────────────────────────
+let _sharePostId = null;
+
+function openShareModal(postId, previewText, previewImg) {
+  _sharePostId = postId;
+
+  // Populate preview
+  document.getElementById('sharePreviewText').textContent = previewText;
+  const imgWrap = document.getElementById('sharePreviewImgWrap');
+  const img     = document.getElementById('sharePreviewImg');
+  if (previewImg) {
+    img.src = previewImg;
+    imgWrap.style.display = '';
+  } else {
+    imgWrap.style.display = 'none';
+  }
+
+  // Reset
+  document.getElementById('shareMessage').value = '';
+  document.getElementById('shareSearch').value  = '';
+  document.querySelectorAll('.share-conn-checkbox').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.share-conn-item').forEach(el => {
+    el.classList.remove('selected');
+    el.style.display = '';
+  });
+  updateShareCount();
+
+  document.getElementById('shareModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('shareSearch').focus(), 100);
+}
+
+function closeShareModal(e) {
+  if (e && e.target !== document.getElementById('shareModal')) return;
+  document.getElementById('shareModal').style.display = 'none';
+  document.body.style.overflow = '';
+  _sharePostId = null;
+}
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeShareModal();
+});
+
+// Connection search filter
+document.getElementById('shareSearch')?.addEventListener('input', function () {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.share-conn-item').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+  });
+});
+
+// Checkbox selection
+document.querySelectorAll('.share-conn-checkbox').forEach(cb => {
+  cb.addEventListener('change', function () {
+    this.closest('.share-conn-item').classList.toggle('selected', this.checked);
+    updateShareCount();
+  });
+});
+
+function updateShareCount() {
+  const checked = document.querySelectorAll('.share-conn-checkbox:checked').length;
+  document.getElementById('shareSelectedCount').textContent =
+    checked === 0 ? '0 selected' : `${checked} selected`;
+  document.getElementById('shareSubmitBtn').disabled = checked === 0;
+}
+
+async function submitShare() {
+  if (!_sharePostId) return;
+
+  const btn = document.getElementById('shareSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Sending…';
+
+  const recipientIds = [...document.querySelectorAll('.share-conn-checkbox:checked')]
+    .map(cb => cb.value);
+  const extraMsg = document.getElementById('shareMessage').value.trim();
+
+  const formData = new FormData();
+  recipientIds.forEach(id => formData.append('recipient_ids', id));
+  if (extraMsg) formData.append('extra_message', extraMsg);
+
+  try {
+    const res = await fetch(`/feed/post/${_sharePostId}/share/`, {
+      method:  'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      body:    formData,
+    });
+
+    if (res.redirected || res.ok) {
+      // Show success toast
+      if (window.GrowthHiveToasts) {
+        window.GrowthHiveToasts.show(
+          `Post shared with ${recipientIds.length} connection${recipientIds.length > 1 ? 's' : ''}!`,
+          'success'
+        );
+      }
+      document.getElementById('shareModal').style.display = 'none';
+      document.body.style.overflow = '';
+      _sharePostId = null;
+    } else {
+      throw new Error('Share failed');
+    }
+  } catch (err) {
+    if (window.GrowthHiveToasts) {
+      window.GrowthHiveToasts.show('Could not share post. Try again.', 'error');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-send-fill me-1"></i> Send';
+  }
 }
 </script>
 {% endblock %}

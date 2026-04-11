@@ -145,6 +145,9 @@
       <div class="gh-topbar">
 
         <div class="gh-topbar-actions">
+          <button class="gh-icon-btn" id="themeToggle" title="Toggle Theme">
+            <i class="bi bi-moon-fill"></i>
+          </button>
           <a href="{% url 'notifications:list' %}" class="gh-icon-btn" id="notifBtn" title="Notifications">
             <i class="bi bi-bell"></i>
             <span class="gh-notif-dot"></span>
@@ -157,14 +160,11 @@
 
 
 
-      <!-- Flash messages -->
+      <!-- Toast Messages (Hidden Data) -->
       {% if messages %}
-      <div class="gh-alerts">
+      <div id="djangoMessages" style="display: none;">
         {% for msg in messages %}
-        <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show" role="alert">
-          {{ msg }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+        <div class="gh-message-data" data-text="{{ msg }}" data-tags="{{ msg.tags|default:'info' }}"></div>
         {% endfor %}
       </div>
       {% endif %}

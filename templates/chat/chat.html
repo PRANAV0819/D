@@ -7,6 +7,74 @@
 <style>
   .gh-content { padding: 0 !important; height: calc(100vh - 52px); overflow: hidden; display: flex; }
   @media (max-width: 991px) { .gh-content { height: calc(100vh - 52px); } }
+
+  /* ── Shared-post card (chat bubble) ── */
+  .gh-shared-post-card {
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 10px;
+    overflow: hidden;
+    min-width: 230px;
+    max-width: 280px;
+    background: rgba(255,255,255,.08);
+  }
+  .gh-msg-other .gh-shared-post-card {
+    background: var(--gh-bg);
+    border-color: var(--gh-border);
+  }
+  .gh-shared-post-card__header {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: .45rem .75rem;
+    opacity: .75;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+  .gh-msg-other .gh-shared-post-card__header {
+    border-bottom-color: var(--gh-border);
+    color: var(--gh-muted);
+    opacity: 1;
+  }
+  .gh-shared-post-card__extra {
+    font-size: .83rem;
+    padding: .5rem .75rem 0;
+    margin: 0;
+    font-style: italic;
+    opacity: .9;
+  }
+  .gh-shared-post-card__body {
+    padding: .5rem .75rem .65rem;
+  }
+  .gh-shared-post-card__img {
+    margin: 0 -.75rem .5rem;
+    overflow: hidden;
+    max-height: 110px;
+  }
+  .gh-shared-post-card__img img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    display: block;
+  }
+  .gh-shared-post-card__snippet {
+    font-size: .83rem;
+    margin: 0 0 .45rem;
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .gh-shared-post-card__link {
+    font-size: .78rem;
+    font-weight: 700;
+    color: inherit;
+    opacity: .85;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+  }
+  .gh-shared-post-card__link:hover { opacity: 1; }
+  .gh-msg-other .gh-shared-post-card__link { color: var(--gh-blue); opacity: 1; }
 </style>
 
 <div class="gh-chat-shell">
@@ -150,7 +218,31 @@
             {% if msg.image %}
             <div class="mb-2"><img src="{{ msg.image.url }}" alt="Image" style="max-width: 100%; border-radius: 8px;"></div>
             {% endif %}
-            {{ msg.content|linebreaksbr }}
+            {% if msg.is_shared_post %}
+              {# ── Shared post preview card ── #}
+              <div class="gh-shared-post-card">
+                <div class="gh-shared-post-card__header">
+                  <i class="bi bi-share-fill"></i> Shared a post
+                </div>
+                {% if msg.shared_post_data.extra_msg %}
+                <p class="gh-shared-post-card__extra">{{ msg.shared_post_data.extra_msg }}</p>
+                {% endif %}
+                <div class="gh-shared-post-card__body">
+                  {% if msg.shared_post_data.image_url %}
+                  <div class="gh-shared-post-card__img">
+                    <img src="{{ msg.shared_post_data.image_url }}" alt="Post image">
+                  </div>
+                  {% endif %}
+                  <p class="gh-shared-post-card__snippet">{{ msg.shared_post_data.snippet }}</p>
+                  <a href="{{ msg.shared_post_data.post_url }}"
+                     class="gh-shared-post-card__link" target="_blank">
+                    View Post &rarr;
+                  </a>
+                </div>
+              </div>
+            {% else %}
+              {{ msg.content|linebreaksbr }}
+            {% endif %}
           </div>
           <div class="gh-msg-meta">
             <span class="gh-msg-time">{{ msg.timestamp }}</span>
@@ -469,10 +561,11 @@ function appendMessage(data) {
     ? `<span class="gh-msg-seen"><i class="bi bi-check2"></i></span>`
     : '';
 
-  // Sanitise and convert newlines
-  const safeContent = data.content
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\n/g,'<br/>');
+  const safeContent = data.content.startsWith('__SHARED_POST__')
+    ? renderSharedPost(data.content.slice(15))
+    : data.content
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\n/g,'<br/>');
 
   const renderedImageHtml = data.image_url 
     ? `<div class="mb-2"><img src="${data.image_url}" alt="Image" style="max-width: 100%; border-radius: 8px;"></div>`
@@ -501,7 +594,31 @@ function appendMessage(data) {
   scrollBottom(true);
 }
 
-// ── Conversation list search ─────────────────────────────────
+// ── Shared-post preview renderer ────────────────────────────────────
+function renderSharedPost(payloadStr) {
+  try {
+    const d = JSON.parse(payloadStr);
+    const imgHtml = d.image_url
+      ? `<div class="gh-shared-post-card__img"><img src="${d.image_url}" alt="Post image"></div>`
+      : '';
+    const extraHtml = d.extra_msg
+      ? `<p class="gh-shared-post-card__extra">${d.extra_msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>`
+      : '';
+    return `
+      <div class="gh-shared-post-card">
+        <div class="gh-shared-post-card__header"><i class="bi bi-share-fill"></i> Shared a post</div>
+        ${extraHtml}
+        <div class="gh-shared-post-card__body">
+          ${imgHtml}
+          <p class="gh-shared-post-card__snippet">${d.snippet.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+          <a href="${d.post_url}" class="gh-shared-post-card__link" target="_blank">View Post &rarr;</a>
+        </div>
+      </div>`;
+  } catch(e) {
+    return payloadStr;
+  }
+}
+// ── Conversation list search ────────────────────────────
 const searchInput = document.getElementById('chatSearch');
 if (searchInput) {
   searchInput.addEventListener('input', function () {
@@ -515,8 +632,7 @@ if (searchInput) {
 </script>
 
 {% else %}
-<script>
-// Conversation list search (inbox page, no active room)
+// ── Conversation list search (inbox page, no active room) ────────────────────
 {
   const searchInput = document.getElementById('chatSearch');
   if (searchInput) {

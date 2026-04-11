@@ -108,7 +108,21 @@ def room_view(request, room_id):
     ).exclude(sender=request.user).update(is_seen=True)
     RoomMember.objects.filter(room=room, user=request.user).update(last_read=timezone.now())
 
-    messages  = room.messages.select_related('sender', 'sender__profile').all()
+    raw_messages = room.messages.select_related('sender', 'sender__profile').all()
+
+    # Annotate shared-post messages so the template doesn't do fragile string slicing
+    import json as _json
+    for msg in raw_messages:
+        if msg.content.startswith('__SHARED_POST__'):
+            msg.is_shared_post = True
+            try:
+                msg.shared_post_data = _json.loads(msg.content[15:])
+            except Exception:
+                msg.shared_post_data = {}
+        else:
+            msg.is_shared_post = False
+            msg.shared_post_data = {}
+
     room_list = build_room_list(request.user)
 
     other = room.get_other_member(request.user) if room.room_type == ChatRoom.RoomType.DM else None
@@ -116,7 +130,7 @@ def room_view(request, room_id):
     return render(request, 'chat/chat.html', {
         'room_list':   room_list,
         'active_room': room,
-        'messages':    messages,
+        'messages':    raw_messages,
         'other':       other,
     })
 

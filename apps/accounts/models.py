@@ -161,6 +161,7 @@ class Profile(models.Model):
     points      = models.PositiveIntegerField(default=0)
     streak_days = models.PositiveIntegerField(default=0)
     last_active = models.DateField(null=True, blank=True)
+    profile_views = models.PositiveIntegerField(default=0)
 
     is_open_to_work   = models.BooleanField(default=False)
     is_open_to_mentor = models.BooleanField(default=False)

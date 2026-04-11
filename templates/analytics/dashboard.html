@@ -1,80 +1,356 @@
 {% extends 'base.html' %}
 {% block title %}Analytics — GrowthHive{% endblock %}
 
-{% block content %}
-<div class="gh-page-header"><h1>Your Analytics</h1></div>
+{% block extra_css %}
+<style>
+  .gh-heat-0 { background: rgba(255,255,255,0.05); }
+  .gh-heat-1 { background: #064e3b; }
+  .gh-heat-2 { background: #059669; }
+  .gh-heat-3 { background: #10b981; }
+  .gh-heat-4 { background: #34d399; }
+  .gh-perf-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    height: 100%;
+    transition: transform 0.3s ease;
+  }
+  .gh-perf-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(96, 165, 250, 0.4);
+  }
+  .gh-perf-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .gh-perf-val { font-size: 1.75rem; font-weight: 700; color: #f1f5f9; line-height: 1; }
+  .gh-perf-sub { font-size: 0.85rem; color: #60a5fa; margin-top: 0.5rem; }
 
-<!-- Stats row -->
-<div class="row g-3 mb-4">
-  <div class="col-6 col-md-3"><div class="gh-stat-card gh-stat-blue"><i class="bi bi-people-fill"></i><span class="val">{{ conn_count }}</span><span class="lbl">Connections</span></div></div>
-  <div class="col-6 col-md-3"><div class="gh-stat-card gh-stat-purple"><i class="bi bi-file-post-fill"></i><span class="val">{{ post_count }}</span><span class="lbl">Posts</span></div></div>
-  <div class="col-6 col-md-3"><div class="gh-stat-card gh-stat-amber"><i class="bi bi-star-fill"></i><span class="val">{{ total_pts }}</span><span class="lbl">Points</span></div></div>
-  <div class="col-6 col-md-3"><div class="gh-stat-card gh-stat-teal"><i class="bi bi-fire"></i><span class="val">{{ streak }}</span><span class="lbl">Day Streak</span></div></div>
+  .gh-chart-container {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    padding: 1.5rem;
+  }
+
+  .gh-timeline-item {
+    position: relative;
+    padding-left: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+  }
+  .gh-timeline-item:last-child { border-left-color: transparent; }
+  .gh-timeline-dot {
+    position: absolute;
+    left: -7px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gh-blue);
+    border: 2px solid #0f172a;
+  }
+
+  .gh-suggestion-card {
+    background: rgba(96, 165, 250, 0.1);
+    border-left: 4px solid #60a5fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-end mb-4">
+  <div>
+    <h1 class="mb-1" style="font-weight: 800; letter-spacing: -0.02em;">Analytics Dashboard</h1>
+    <p class="text-muted mb-0">Insights & engagement tracking for {{ display_year }}</p>
+  </div>
+  <div class="d-flex align-items-center gap-2" 
+       style="background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);">
+    <a href="?year={{ prev_year }}" class="text-white-50 hover-text-white" style="text-decoration:none;"><i class="bi bi-chevron-left"></i></a>
+    <span style="font-weight: 700; color: #60a5fa; min-width: 60px; text-align: center;">{{ display_year }}</span>
+    <a href="?year={{ next_year }}" class="text-white-50 hover-text-white" style="text-decoration:none;"><i class="bi bi-chevron-right"></i></a>
+  </div>
 </div>
 
-<!-- Activity & Streak -->
-<div class="row mb-4">
-  <div class="col-12 col-xl-12">
-    <div class="gh-card h-100 dark-glass">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h5 class="gh-card-title mb-0" style="color: #e2e8f0; font-weight: 600;">Activity Monitor</h5>
-        
-        <form method="post" action="{% url 'analytics:update_streak' %}" class="d-inline">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-sm {% if streak_updated_today %}btn-secondary{% else %}btn-success{% endif %}" {% if streak_updated_today %}disabled{% endif %}>
-            {% if streak_updated_today %}Streak Updated ✓{% else %}Update Streak 🔥{% endif %}
-          </button>
-        </form>
+<!-- 1. Activity Overview (The Heatmap) -->
+<div class="gh-card mb-4 dark-glass overflow-hidden" style="border: 1px solid rgba(96, 165, 250, 0.2);">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-fire fs-4" style="color: #fbbf24;"></i>
+      <h5 class="gh-card-title mb-0">Engagement Heatmap</h5>
+    </div>
+    <form method="post" action="{% url 'analytics:update_streak' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm {% if streak_updated_today %}btn-secondary{% else %}btn-success{% endif %} rounded-pill px-3" {% if streak_updated_today %}disabled{% endif %}>
+        {% if streak_updated_today %}Streak Active ✓{% else %}Update Streak 🔥{% endif %}
+      </button>
+    </form>
+  </div>
+
+  <div class="gh-heatmap-wrap">
+    <div class="gh-heatmap" style="display: grid; grid-template-rows: repeat(7, 12px); grid-template-columns: repeat(53, 12px); gap: 4px; overflow-x: auto; padding-bottom: 25px; position: relative;">
+      {% for week in weeks %}
+        {% for day in week %}
+          <div class="gh-heatmap-day gh-heat-{{ day.count|default:0 }}"
+               style="grid-row: {{ forloop.counter }}; grid-column: {{ forloop.parentloop.counter }}; width: 12px; height: 12px; border-radius: 2px;"
+               title="{{ day.date }}: {{ day.count }} activities"></div>
+        {% endfor %}
+      {% endfor %}
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 15px;">
+        {% for label in month_labels %}
+          <span class="text-muted" style="position: absolute; left: calc({{ label.col_index }} * 16px); font-size: 0.65rem;">{{ label.name }}</span>
+        {% endfor %}
       </div>
+    </div>
+  </div>
+</div>
 
-      <div class="gh-heatmap-wrap" style="background: transparent; border: none; padding: 0;">
-        <div class="gh-heatmap" style="display: grid; grid-template-rows: repeat(7, 12px); grid-template-columns: repeat(53, 12px); gap: 3px; overflow-x: auto; padding-bottom: 25px; position: relative;">
-          {% for week in weeks %}
-            {% for day in week %}
-              <div class="gh-heatmap-day gh-heat-{% if day.count == 0 %}0{% elif day.count <= 2 %}1{% elif day.count <= 5 %}2{% elif day.count <= 9 %}3{% else %}4{% endif %}"
-                   style="grid-row: {{ forloop.counter }}; grid-column: {{ forloop.parentloop.counter }}; width: 12px; height: 12px; border-radius: 2px;"
-                   title="{{ day.date }}: {{ day.count }} activities"></div>
-            {% endfor %}
-          {% endfor %}
+<!-- 2. Performance Metrics & Comparison -->
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="gh-perf-card">
+      <div class="gh-perf-label">Engagement Score</div>
+      <div class="gh-perf-val">{{ performance.engagement_score }}</div>
+      <div class="gh-perf-sub"><span class="badge {{ performance.contrib_class }}">{{ performance.contrib_level }} Level</span></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="gh-perf-card">
+      <div class="gh-perf-label">Current Rank</div>
+      <div class="gh-perf-val">#{{ performance.rank }}</div>
+      <div class="gh-perf-sub">Top {{ performance.percentile }}% of users</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="gh-perf-card">
+      <div class="gh-perf-label">Profile Views</div>
+      <div class="gh-perf-val">{{ performance.profile_views }}</div>
+      <div class="gh-perf-sub">Reach this year</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="gh-perf-card">
+      <div class="gh-perf-label">Total Logins</div>
+      <div class="gh-perf-val">{{ streak }}</div>
+      <div class="gh-perf-sub">Days active</div>
+    </div>
+  </div>
+</div>
 
-          <!-- Month Labels Layer -->
-          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 15px;">
-            {% for label in month_labels %}
-              <span class="text-muted" style="position: absolute; left: calc({{ label.col_index }} * 15px); font-size: 0.65rem;">{{ label.name }}</span>
-            {% endfor %}
+<!-- 3. Visualization Section -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="gh-chart-container h-100">
+      <h6 class="text-muted mb-4">Activity intensity over the year</h6>
+      <canvas id="growthChart" height="200"></canvas>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="gh-chart-container h-100">
+      <h6 class="text-muted mb-4">Usage Distribution</h6>
+      <canvas id="usagePieChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Module-wise Details & Timeline -->
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="gh-card mb-4 dark-glass">
+      <h5 class="gh-card-title mb-4">Module Analytics Breakdown</h5>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="p-3 rounded bg-white-5" style="border:1px solid rgba(255,255,255,0.05)">
+            <div class="text-muted small mb-1">Mentorship</div>
+            <div class="h5 mb-0">{{ mentorship_stats.sessions }} Sessions</div>
+            <div class="small" style="color: #60a5fa;">{{ mentorship_stats.requests }} Requests</div>
           </div>
         </div>
-
-        <div class="gh-heatmap-legend mt-2 d-flex align-items-center justify-content-end w-100" style="font-size: 0.75rem;">
-          <span class="text-muted small me-2">Less</span>
-          <div class="gh-heat-0 gh-heatmap-day" style="width: 12px; height: 12px; border-radius: 2px; margin-right: 3px;"></div>
-          <div class="gh-heat-1 gh-heatmap-day" style="width: 12px; height: 12px; border-radius: 2px; margin-right: 3px;"></div>
-          <div class="gh-heat-2 gh-heatmap-day" style="width: 12px; height: 12px; border-radius: 2px; margin-right: 3px;"></div>
-          <div class="gh-heat-3 gh-heatmap-day" style="width: 12px; height: 12px; border-radius: 2px; margin-right: 3px;"></div>
-          <div class="gh-heat-4 gh-heatmap-day" style="width: 12px; height: 12px; border-radius: 2px; margin-right: 3px;"></div>
-          <span class="text-muted small ms-1">More</span>
+        <div class="col-md-4">
+          <div class="p-3 rounded bg-white-5" style="border:1px solid rgba(255,255,255,0.05)">
+            <div class="text-muted small mb-1">Projects</div>
+            <div class="h5 mb-0">{{ project_stats.joined }} Joined</div>
+            <div class="small" style="color: #a78bfa;">{{ project_stats.created }} Created</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded bg-white-5" style="border:1px solid rgba(255,255,255,0.05)">
+            <div class="text-muted small mb-1">Marketplace</div>
+            <div class="h5 mb-0">{{ marketplace_stats.posts }} Posts</div>
+            <div class="small" style="color: #fbbf24;">{{ marketplace_stats.sold }} Sold</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded bg-white-5" style="border:1px solid rgba(255,255,255,0.05)">
+            <div class="text-muted small mb-1">Resources</div>
+            <div class="h5 mb-0">{{ resource_stats.uploads }} Uploads</div>
+            <div class="small" style="color: #10b981;">Shared Assets</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded bg-white-5" style="border:1px solid rgba(255,255,255,0.05)">
+            <div class="text-muted small mb-1">Social</div>
+            <div class="h5 mb-0">{{ post_count }} Posts</div>
+            <div class="small" style="color: #f87171;">{{ conn_count }} Conn.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded bg-white-5" style="border:1px solid rgba(255,255,255,0.05)">
+            <div class="text-muted small mb-1">Lost & Found</div>
+            <div class="h5 mb-0">{{ lost_found_stats.reports }} Reports</div>
+            <div class="small" style="color: #94a3b8;">{{ lost_found_stats.resolved }} Resolved</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Skills -->
-{% if user_skills %}
-<div class="gh-card">
-  <h6 class="gh-card-title">Skill Profile</h6>
-  {% for us in user_skills %}
-  <div class="d-flex align-items-center gap-3 mb-2">
-    <span style="width:120px;font-size:.85rem;font-weight:600;">{{ us.skill.name }}</span>
-    <div class="gh-skill-bar-wrap">
-      <div class="gh-skill-bar"
-           style="width:{% if us.level == 'expert' %}100{% elif us.level == 'advanced' %}75{% elif us.level == 'intermediate' %}50{% else %}25{% endif %}%;
-                  background:{% if us.level == 'expert' %}var(--gh-amber){% elif us.level == 'advanced' %}var(--gh-purple){% elif us.level == 'intermediate' %}var(--gh-blue){% else %}var(--gh-green){% endif %};">
+    <!-- Timeline -->
+    <div class="gh-card dark-glass">
+      <h5 class="gh-card-title mb-4">Recent Activity Timeline</h5>
+      <div class="ps-2">
+        {% for event in recent_events %}
+        <div class="gh-timeline-item">
+          <div class="gh-timeline-dot"></div>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div style="font-weight: 600; font-size: 0.95rem;">{{ event.get_action_display }}</div>
+              <div class="text-muted small">{{ event.created_at|date:"M d, Y · H:i" }}</div>
+            </div>
+            <div class="badge bg-secondary opacity-75">+{{ event.points_earned }} pts</div>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">No recent activity found.</p>
+        {% endfor %}
       </div>
     </div>
-    <span class="gh-tag gh-skill-{{ us.level }}" style="white-space:nowrap;">{{ us.get_level_display }}</span>
   </div>
-  {% endfor %}
+
+  <div class="col-lg-4">
+    <!-- Insights -->
+    <div class="gh-card mb-4 dark-glass">
+      <h5 class="gh-card-title mb-4"><i class="bi bi-lightbulb-fill me-2" style="color: #fbbf24;"></i>Insights & Suggestions</h5>
+      {% for sug in suggestions %}
+      <div class="gh-suggestion-card">
+        <div class="small" style="font-weight: 500;">{{ sug }}</div>
+      </div>
+      {% empty %}
+      <p class="text-muted small text-center px-3 py-4">Great job! You are highly active across all modules.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Achievements -->
+    <div class="gh-card dark-glass">
+      <h5 class="gh-card-title mb-4">Milestones & Badges</h5>
+      <div class="d-flex flex-wrap gap-3">
+        {% if performance.engagement_score > 200 %}
+        <div class="text-center" style="width: 80px;">
+          <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" 
+               style="width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.2); background: #fbbf24;">
+            <i class="bi bi-trophy-fill text-dark fs-5"></i>
+          </div>
+          <div class="x-small fw-bold">Elite</div>
+        </div>
+        {% endif %}
+        {% if streak > 7 %}
+        <div class="text-center" style="width: 80px;">
+          <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" 
+               style="width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.2); background: #2563eb;">
+            <i class="bi bi-lightning-fill text-white fs-5"></i>
+          </div>
+          <div class="x-small fw-bold">Consistent</div>
+        </div>
+        {% endif %}
+        {% if resource_stats.uploads > 0 %}
+        <div class="text-center" style="width: 80px;">
+          <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" 
+               style="width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.2); background: #9333ea;">
+            <i class="bi bi-share-fill text-white fs-5"></i>
+          </div>
+          <div class="x-small fw-bold">Sharer</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
-{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Prepare Heatmap Data for Growth Chart (Intensity over year)
+  const heatmapData = [];
+  {% for week in weeks %}
+    {% for day in week %}
+      heatmapData.push({{ day.count|default:0 }});
+    {% endfor %}
+  {% endfor %}
+  
+  // Usage Distribution Data
+  const moduleData = {
+    labels: ['Mentorship', 'Projects', 'Marketplace', 'Resources', 'Social', 'Lost & Found'],
+    datasets: [{
+      data: [
+        {{ mentorship_stats.sessions }},
+        {{ project_stats.joined }},
+        {{ marketplace_stats.posts }},
+        {{ resource_stats.uploads }},
+        {{ post_count }},
+        {{ lost_found_stats.reports }}
+      ],
+      backgroundColor: [
+        '#3b82f6', '#8b5cf6', '#fbbf24', '#10b981', '#f87171', '#94a3b8'
+      ]
+    }]
+  };
+
+  // Growth Chart
+  new Chart(document.getElementById('growthChart'), {
+    type: 'line',
+    data: {
+      labels: Array.from({length: heatmapData.length}, (_, i) => i + 1),
+      datasets: [{
+        label: 'Daily Activity Level',
+        data: heatmapData,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { display: false },
+        y: { 
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#94a3b8' }
+        }
+      }
+    }
+  });
+
+  // Usage Pie Chart
+  new Chart(document.getElementById('usagePieChart'), {
+    type: 'doughnut',
+    data: moduleData,
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#94a3b8', font: { size: 10 }, usePointStyle: true }
+        }
+      },
+      cutout: '70%'
+    }
+  });
+</script>
 {% endblock %}

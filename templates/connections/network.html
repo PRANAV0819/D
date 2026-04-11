@@ -1,51 +1,103 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}My Network — GrowthHive{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/network.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="gh-page-header">
-  <h1>My Network</h1>
-  <p class="text-muted">Manage your connections and grow your campus network.</p>
+
+<!-- ── Page Header ──────────────────────────────────────────────────── -->
+<div class="net-header">
+  <div>
+    <h1 class="net-header__title">My Network</h1>
+    <p class="net-header__sub">Manage your connections and grow your campus network.</p>
+  </div>
+  <a href="{% url 'connections:search' %}" class="net-btn net-btn--outline" style="width:auto;">
+    <i class="bi bi-search"></i> Find People
+  </a>
 </div>
 
-<!-- Search bar -->
-<div class="gh-card mb-4">
-  <form method="get" action="{% url 'connections:search' %}" class="gh-people-search-form">
+<!-- ── Stats Bar ─────────────────────────────────────────────────────── -->
+<div class="net-stats">
+  <div class="net-stat-card">
+    <div class="net-stat-card__icon net-stat-card__icon--blue">
+      <i class="bi bi-people-fill"></i>
+    </div>
+    <div>
+      <div class="net-stat-card__val">{{ accepted.count }}</div>
+      <div class="net-stat-card__label">Connections</div>
+    </div>
+  </div>
+  <div class="net-stat-card">
+    <div class="net-stat-card__icon net-stat-card__icon--amber">
+      <i class="bi bi-hourglass-split"></i>
+    </div>
+    <div>
+      <div class="net-stat-card__val">{{ pending_received.count }}</div>
+      <div class="net-stat-card__label">Pending Requests</div>
+    </div>
+  </div>
+  <div class="net-stat-card">
+    <div class="net-stat-card__icon net-stat-card__icon--green">
+      <i class="bi bi-person-check-fill"></i>
+    </div>
+    <div>
+      <div class="net-stat-card__val">{{ suggestions|length }}</div>
+      <div class="net-stat-card__label">Suggestions</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Search Bar ─────────────────────────────────────────────────────── -->
+<form method="get" action="{% url 'connections:search' %}">
+  <div class="net-search-wrap">
     <i class="bi bi-search"></i>
-    <input type="text" name="q" placeholder="Search students, alumni, teachers by name…"
-           class="gh-people-search-input"/>
-    <button type="submit" class="btn gh-btn-primary">Search</button>
-  </form>
-</div>
+    <input type="text" name="q" placeholder="Search students, alumni, teachers by name…" class="net-search-input" autocomplete="off">
+    <button type="submit" class="net-search-btn">Search</button>
+  </div>
+</form>
 
-<!-- Pending incoming requests -->
+<!-- ── Pending Incoming Requests ─────────────────────────────────────── -->
 {% if pending_received %}
-<section class="mb-4">
-  <h5 class="gh-section-title">
-    <i class="bi bi-person-plus me-2"></i>
-    Pending requests
-    <span class="gh-section-badge">{{ pending_received.count }}</span>
-  </h5>
-  <div class="gh-people-grid">
+<section class="net-section">
+  <div class="net-section__header">
+    <i class="bi bi-person-plus-fill"></i>
+    <h2 class="net-section__title">
+      Pending Requests
+      <span class="net-section__badge">{{ pending_received.count }}</span>
+    </h2>
+  </div>
+
+  <div class="net-grid">
     {% for conn in pending_received %}
-    <div class="gh-people-card">
-      <div class="gh-people-card-banner"></div>
-      <div class="gh-people-card-body">
-        <a href="{% url 'accounts:profile_detail' conn.sender.pk %}">
-          <img src="{{ conn.sender.profile.get_avatar_url }}" class="gh-people-avatar"/>
-        </a>
-        <a href="{% url 'accounts:profile_detail' conn.sender.pk %}" class="gh-people-name">
+    <div class="net-card">
+      <div class="net-card__banner net-card__banner--{{ conn.sender.role }}"></div>
+      <div class="net-card__body">
+        <div class="net-card__avatar-wrap">
+          <a href="{% url 'accounts:profile_detail' conn.sender.pk %}">
+            <img src="{{ conn.sender.profile.get_avatar_url }}" class="net-card__avatar" alt="{{ conn.sender.get_full_name }}">
+          </a>
+        </div>
+        <a href="{% url 'accounts:profile_detail' conn.sender.pk %}" class="net-card__name">
           {{ conn.sender.get_full_name }}
         </a>
-        <span class="gh-people-role">{{ conn.sender.get_role_display }}</span>
-
-        <div class="gh-people-actions mt-2">
+        <span class="net-card__role">
+          {{ conn.sender.get_role_display }}{% if conn.sender.profile.department %} · {{ conn.sender.profile.get_department_display }}{% endif %}
+        </span>
+        <div class="net-card__actions">
           <form method="post" action="{% url 'connections:accept' conn.pk %}">
             {% csrf_token %}
-            <button class="btn gh-btn-primary w-100">Accept</button>
+            <button class="net-btn net-btn--primary">
+              <i class="bi bi-check-lg"></i> Accept
+            </button>
           </form>
           <form method="post" action="{% url 'connections:reject' conn.pk %}">
             {% csrf_token %}
-            <button class="btn gh-btn-outline w-100">Ignore</button>
+            <button class="net-btn net-btn--ghost">
+              <i class="bi bi-x"></i> Ignore
+            </button>
           </form>
         </div>
       </div>
@@ -55,98 +107,124 @@
 </section>
 {% endif %}
 
-<!-- My connections -->
-<section class="mb-4">
-  <h5 class="gh-section-title">
-    <i class="bi bi-people-fill me-2"></i>
-    Connected People
-    <span class="gh-section-badge">{{ accepted.count }}</span>
-  </h5>
+<!-- ── My Connections ─────────────────────────────────────────────────── -->
+<section class="net-section">
+  <div class="net-section__header">
+    <i class="bi bi-people-fill"></i>
+    <h2 class="net-section__title">
+      Connected People
+      <span class="net-section__badge">{{ accepted.count }}</span>
+    </h2>
+  </div>
 
   {% if accepted %}
-  <div class="gh-people-grid">
+  <div class="net-grid">
     {% for conn in accepted %}
-      {% if conn.sender == user %}
-        {% with other=conn.receiver %}
-        <div class="gh-people-card">
-          <div class="gh-people-card-banner"></div>
-          <div class="gh-people-card-body">
+      {% if conn.sender == user %}{% with other=conn.receiver %}
+      <div class="net-card">
+        <div class="net-card__banner net-card__banner--{{ other.role }}"></div>
+        <div class="net-card__body">
+          <div class="net-card__avatar-wrap">
             <a href="{% url 'accounts:profile_detail' other.pk %}">
-              <img src="{{ other.profile.get_avatar_url }}" class="gh-people-avatar"/>
+              <img src="{{ other.profile.get_avatar_url }}" class="net-card__avatar" alt="{{ other.get_full_name }}">
             </a>
-            <a href="{% url 'accounts:profile_detail' other.pk %}" class="gh-people-name">
-              {{ other.get_full_name }}
+          </div>
+          <a href="{% url 'accounts:profile_detail' other.pk %}" class="net-card__name">{{ other.get_full_name }}</a>
+          <span class="net-card__role">
+            {{ other.get_role_display }}{% if other.profile.department %} · {{ other.profile.get_department_display }}{% endif %}
+          </span>
+          <div class="net-card__actions">
+            <a href="{% url 'accounts:profile_detail' other.pk %}" class="net-btn net-btn--outline">
+              <i class="bi bi-person"></i>View Profile
             </a>
-            <span class="gh-people-role">{{ other.get_role_display }}
-              {% if other.department %} · {{ other.get_department_display }}{% endif %}
-            </span>
-            <div class="gh-people-actions mt-2">
-              <a href="{% url 'accounts:profile_detail' other.pk %}" class="btn gh-btn-outline w-100">View Profile</a>
-            </div>
+            <form method="post" action="{% url 'connections:remove' other.pk %}">
+              {% csrf_token %}
+              <button class="net-btn net-btn--danger">
+                <i class="bi bi-person-dash"></i> Remove
+              </button>
+            </form>
           </div>
         </div>
-        {% endwith %}
-      {% else %}
-        {% with other=conn.sender %}
-        <div class="gh-people-card">
-          <div class="gh-people-card-banner"></div>
-          <div class="gh-people-card-body">
+      </div>
+      {% endwith %}{% else %}{% with other=conn.sender %}
+      <div class="net-card">
+        <div class="net-card__banner net-card__banner--{{ other.role }}"></div>
+        <div class="net-card__body">
+          <div class="net-card__avatar-wrap">
             <a href="{% url 'accounts:profile_detail' other.pk %}">
-              <img src="{{ other.profile.get_avatar_url }}" class="gh-people-avatar"/>
+              <img src="{{ other.profile.get_avatar_url }}" class="net-card__avatar" alt="{{ other.get_full_name }}">
             </a>
-            <a href="{% url 'accounts:profile_detail' other.pk %}" class="gh-people-name">
-              {{ other.get_full_name }}
+          </div>
+          <a href="{% url 'accounts:profile_detail' other.pk %}" class="net-card__name">{{ other.get_full_name }}</a>
+          <span class="net-card__role">
+            {{ other.get_role_display }}{% if other.profile.department %} · {{ other.profile.get_department_display }}{% endif %}
+          </span>
+          <div class="net-card__actions">
+            <a href="{% url 'accounts:profile_detail' other.pk %}" class="net-btn net-btn--outline">
+              <i class="bi bi-person"></i> View Profile
             </a>
-            <span class="gh-people-role">{{ other.get_role_display }}
-              {% if other.department %} · {{ other.get_department_display }}{% endif %}
-            </span>
-            <div class="gh-people-actions mt-2">
-              <a href="{% url 'accounts:profile_detail' other.pk %}" class="btn gh-btn-outline w-100">View Profile</a>
-            </div>
+            <form method="post" action="{% url 'connections:remove' other.pk %}">
+              {% csrf_token %}
+              <button class="net-btn net-btn--danger">
+                <i class="bi bi-person-dash"></i> Remove
+              </button>
+            </form>
           </div>
         </div>
-        {% endwith %}
-      {% endif %}
+      </div>
+      {% endwith %}{% endif %}
     {% endfor %}
   </div>
 
   {% else %}
-  <div class="gh-empty-state">
-    <i class="bi bi-people"></i>
-    <h5>No connections yet</h5>
-    <p>Start connecting with people below!</p>
+  <div class="net-empty">
+    <span class="net-empty__icon"><i class="bi bi-people"></i></span>
+    <div class="net-empty__title">No connections yet</div>
+    <p class="net-empty__sub">Start connecting with people from the suggestions below!</p>
   </div>
   {% endif %}
 </section>
 
-<!-- Suggestions -->
+<!-- ── People You May Know ─────────────────────────────────────────────── -->
 {% if suggestions %}
-<section>
-  <h5 class="gh-section-title"><i class="bi bi-globe me-2"></i>Students, Alumni & Teachers</h5>
-  <div class="gh-people-grid">
+<section class="net-section">
+  <div class="net-section__header">
+    <i class="bi bi-stars"></i>
+    <h2 class="net-section__title">People You May Know</h2>
+  </div>
+  <div class="net-grid">
     {% for person in suggestions %}
-    <div class="gh-people-card">
-      <div class="gh-people-card-banner"></div>
-      <div class="gh-people-card-body">
-
-        <a href="{% url 'accounts:profile_detail' person.pk %}">
-          <img src="{{ person.profile.get_avatar_url }}" class="gh-people-avatar"/>
-        </a>
-
-        <a href="{% url 'accounts:profile_detail' person.pk %}" class="gh-people-name">
+    <div class="net-card">
+      <div class="net-card__banner net-card__banner--{{ person.role }}"></div>
+      <div class="net-card__body">
+        <div class="net-card__avatar-wrap">
+          <a href="{% url 'accounts:profile_detail' person.pk %}">
+            <img src="{{ person.profile.get_avatar_url }}" class="net-card__avatar" alt="{{ person.get_full_name }}">
+          </a>
+        </div>
+        <a href="{% url 'accounts:profile_detail' person.pk %}" class="net-card__name">
           {{ person.get_full_name }}
         </a>
-        <span class="gh-people-role">{{ person.get_role_display }}
-          {% if person.department %} · {{ person.get_department_display }}{% endif %}
+        <span class="net-card__role">
+          {{ person.get_role_display }}{% if person.profile.department %} · {{ person.profile.get_department_display }}{% endif %}
         </span>
-
-        <div class="gh-people-actions mt-2">
-          <form method="post" action="{% url 'connections:send_request' person.pk %}" class="w-100">
+        <div class="net-card__actions">
+          {% if person.pk not in pending_sent_ids %}
+          <form method="post" action="{% url 'connections:send_request' person.pk %}">
             {% csrf_token %}
-            <button class="btn gh-btn-primary w-100">Connect</button>
+            <button class="net-btn net-btn--primary">
+              <i class="bi bi-person-plus"></i> Connect
+            </button>
           </form>
+          {% else %}
+          <button class="net-btn net-btn--ghost" disabled>
+            <i class="bi bi-hourglass"></i> Pending
+          </button>
+          {% endif %}
+          <a href="{% url 'accounts:profile_detail' person.pk %}" class="net-btn net-btn--outline">
+            <i class="bi bi-eye"></i> View Profile
+          </a>
         </div>
-
       </div>
     </div>
     {% endfor %}

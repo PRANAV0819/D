@@ -164,24 +164,47 @@ def post_detail_view(request, post_id):
 def share_post_view(request, post_id):
     from apps.chat.models import ChatRoom, Message
     from django.urls import reverse
+    import json
 
     post = get_object_or_404(Post, pk=post_id)
     recipient_ids = request.POST.getlist('recipient_ids')
+    extra_message = request.POST.get('extra_message', '').strip()
 
     if not recipient_ids:
         messages.error(request, 'No recipients selected.')
         return redirect('social:feed')
 
-    # Send a DM to each selected recipient
-    post_url = request.build_absolute_uri(reverse('social:post_detail', args=[post.id]))
-    share_text = f"Hey, check out this post!\n\n{post_url}"
-    count = 0
+    # Point to the home feed post anchor
+    feed_url    = reverse('social:feed')
+    post_url    = f"{request.build_absolute_uri(feed_url)}#post-{post.id}"
+    image_url   = request.build_absolute_uri(post.image.url) if post.image else ''
+    author_name = post.author.get_full_name()
+    snippet     = post.content[:200]
 
+    # Build a structured marker so chat.html can render a rich card
+    share_payload = json.dumps({
+        'type':        'shared_post',
+        'post_id':     post.id,
+        'post_url':    post_url,
+        'author':      author_name,
+        'snippet':     snippet,
+        'image_url':   image_url,
+        'extra_msg':   extra_message,
+    }, separators=(',', ':'))
+
+    # Prefix with a magic marker that the template can detect
+    message_content = f'__SHARED_POST__{share_payload}'
+
+    count = 0
     for r_id in recipient_ids:
         recipient = User.objects.filter(pk=r_id).first()
         if recipient and recipient != request.user:
             room, _ = ChatRoom.get_or_create_dm(request.user, recipient)
-            Message.objects.create(room=room, sender=request.user, content=share_text)
+            Message.objects.create(
+                room=room,
+                sender=request.user,
+                content=message_content,
+            )
             count += 1
 
     if count > 0:

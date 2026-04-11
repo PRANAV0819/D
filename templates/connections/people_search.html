@@ -1,64 +1,100 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Search People — GrowthHive{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/network.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="gh-page-header">
-  <h1>Search people</h1>
+
+<!-- ── Page Header ──────────────────────────────────────────────────── -->
+<div class="net-header">
+  <div>
+    <h1 class="net-header__title">Search People</h1>
+    <p class="net-header__sub">Find and connect with students, alumni, and teachers.</p>
+  </div>
+  <a href="{% url 'connections:network' %}" class="net-btn net-btn--outline" style="width:auto;">
+    <i class="bi bi-arrow-left"></i> Back to Network
+  </a>
 </div>
 
-<div class="gh-card mb-4">
-  <form method="get" class="gh-people-search-form">
+<!-- ── Search Bar ─────────────────────────────────────────────────────── -->
+<form method="get">
+  <div class="net-search-wrap">
     <i class="bi bi-search"></i>
-    <input type="text" name="q" value="{{ query }}"
-           placeholder="Search by name or email…"
-           class="gh-people-search-input" autofocus/>
-    <button type="submit" class="btn gh-btn-primary">Search</button>
-  </form>
-</div>
+    <input
+      type="text"
+      name="q"
+      value="{{ query }}"
+      placeholder="Search by name or email…"
+      class="net-search-input"
+      autofocus
+      autocomplete="off"
+    >
+    <button type="submit" class="net-search-btn">Search</button>
+  </div>
+</form>
 
+<!-- ── Results ────────────────────────────────────────────────────────── -->
 {% if query %}
-<p class="text-muted mb-3">
-  {% if results %}{{ results|length }} result{{ results|length|pluralize }} for "{{ query }}"
-  {% else %}No results for "{{ query }}"{% endif %}
-</p>
+  {% if results %}
+  <p class="net-results-meta">
+    Found <strong>{{ results|length }}</strong>
+    result{{ results|length|pluralize }} for "<strong>{{ query }}</strong>"
+  </p>
 
-<div class="gh-people-list">
-  {% for person in results %}
-  <div class="gh-people-list-item gh-card mb-2">
-    <a href="{% url 'accounts:profile_detail' person.pk %}">
-      <img src="{{ person.profile.get_avatar_url }}" class="gh-people-list-avatar" alt="avatar"/>
-    </a>
-    <div class="gh-people-list-info">
-      <a href="{% url 'accounts:profile_detail' person.pk %}" class="gh-people-name">
-        {{ person.get_full_name }}
+  <div class="net-list">
+    {% for person in results %}
+    <div class="net-list-item" style="animation-delay: {{ forloop.counter0 }}00ms;">
+      <a href="{% url 'accounts:profile_detail' person.pk %}">
+        <img src="{{ person.profile.get_avatar_url }}" class="net-list-avatar" alt="{{ person.get_full_name }}">
       </a>
-      <span class="gh-people-role">{{ person.get_role_display }}
-        {% if person.department %} · {{ person.get_department_display }}{% endif %}
-
-      </span>
-    </div>
-    <div class="gh-people-list-action ms-auto">
-      {% if person.conn_status == 'none' %}
-      <form method="post" action="{% url 'connections:send_request' person.pk %}">
-        {% csrf_token %}
-        <button class="btn gh-btn-primary btn-sm">
-          <i class="bi bi-person-plus me-1"></i>Connect
+      <div class="net-list-info">
+        <a href="{% url 'accounts:profile_detail' person.pk %}" class="net-list-name">
+          {{ person.get_full_name }}
+        </a>
+        <span class="net-list-role">
+          {{ person.get_role_display }}
+          {% if person.profile.department %} · {{ person.profile.get_department_display }}{% endif %}
+        </span>
+      </div>
+      <div class="net-list-action">
+        {% if person.conn_status == 'none' %}
+        <form method="post" action="{% url 'connections:send_request' person.pk %}">
+          {% csrf_token %}
+          <button class="net-btn net-btn--primary" style="width:auto; white-space:nowrap;">
+            <i class="bi bi-person-plus"></i> Connect
+          </button>
+        </form>
+        {% elif person.conn_status == 'pending' %}
+        <button class="net-btn net-btn--ghost" style="width:auto;" disabled>
+          <i class="bi bi-hourglass"></i> Pending
         </button>
-      </form>
-      {% elif person.conn_status == 'pending' %}
-      <button class="btn gh-btn-outline btn-sm" disabled>Pending</button>
-      {% elif person.conn_status == 'accepted' %}
-      <span class="badge gh-badge-green"><i class="bi bi-check-lg me-1"></i>Connected</span>
-      {% endif %}
+        {% elif person.conn_status == 'accepted' %}
+        <span class="net-connected-badge">
+          <i class="bi bi-check-circle-fill"></i> Connected
+        </span>
+        {% endif %}
+      </div>
     </div>
+    {% endfor %}
   </div>
-  {% empty %}
-  <div class="gh-empty-state">
-    <i class="bi bi-search"></i>
-    <h5>No users found</h5>
-    <p>Try a different name or check the spelling.</p>
+
+  {% else %}
+  <div class="net-empty">
+    <span class="net-empty__icon"><i class="bi bi-search"></i></span>
+    <div class="net-empty__title">No results found</div>
+    <p class="net-empty__sub">Try a different name or check the spelling.</p>
   </div>
-  {% endfor %}
+  {% endif %}
+
+{% else %}
+<div class="net-empty">
+  <span class="net-empty__icon"><i class="bi bi-people"></i></span>
+  <div class="net-empty__title">Search for someone</div>
+  <p class="net-empty__sub">Type a name above to find people in GrowthHive.</p>
 </div>
 {% endif %}
+
 {% endblock %}

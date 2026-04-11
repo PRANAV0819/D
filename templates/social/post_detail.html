@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Post by {{ post.author.get_full_name }} — GrowthHive{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/feed.css' %}">
+<style>
+  .post-detail-layout {
+    max-width: 680px;
+    margin: 0 auto;
+    padding-top: 1rem;
+  }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    color: var(--gh-muted);
+    text-decoration: none;
+    font-size: .875rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    transition: color .2s ease;
+  }
+  .back-btn:hover {
+    color: var(--gh-text);
+  }
+  /* Force comments section to be always open on details page */
+  .comments-section {
+    display: block !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="post-detail-layout">
+  
+  <a href="{% url 'social:feed' %}#post-{{ post.id }}" class="back-btn">
+    <i class="bi bi-arrow-left"></i> Back to feed
+  </a>
+
+  <!-- Specific Post Card -->
+  <article class="post-card" id="post-{{ post.id }}">
+    
+    <!-- Post Header -->
+    <div class="post-header">
+      <a href="{% url 'accounts:profile_detail' post.author.pk %}">
+        <img src="{{ post.author.profile.get_avatar_url }}" class="post-avatar" alt="{{ post.author.get_full_name }}">
+      </a>
+      <div class="post-meta">
+        <a href="{% url 'accounts:profile_detail' post.author.pk %}" class="post-author">
+          {{ post.author.get_full_name }}
+        </a>
+        <div class="post-author-sub">
+          <span class="post-role-badge">{{ post.author.get_role_display }}</span>
+          {% if post.author.department %}
+          <span>· {{ post.author.get_department_display }}</span>
+          {% endif %}
+          <span class="post-time">
+            <i class="bi bi-clock" style="font-size:.65rem;"></i>
+            {{ post.created_at|timesince }} ago
+          </span>
+          {% if post.visibility == 'connected' %}
+          <span class="post-vis-badge">
+            <i class="bi bi-people-fill"></i> Connections
+          </span>
+          {% else %}
+          <span class="post-vis-badge">
+            <i class="bi bi-globe2"></i> Public
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if post.author == user %}
+      <div class="post-menu">
+        <button class="post-menu-btn" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-three-dots"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width:160px; border-radius:10px;">
+          <li>
+            <form method="post" action="{% url 'social:delete_post' post.id %}">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2" onclick="return confirm('Delete this post?');">
+                <i class="bi bi-trash3"></i> Delete post
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Post Body -->
+    <div class="post-body">
+      <p>{{ post.content|linebreaksbr }}</p>
+    </div>
+
+    {% if post.image %}
+    <div class="post-image">
+      <img src="{{ post.image.url }}" alt="Post image" loading="lazy">
+    </div>
+    {% endif %}
+
+    <!-- Reaction counts -->
+    <div class="post-reactions">
+      <span class="post-reaction-likes" id="like-count-{{ post.id }}">
+        {% if post.like_count > 0 %}
+        <i class="bi bi-hand-thumbs-up-fill"></i>
+        <span>{{ post.like_count }}</span>
+        {% endif %}
+      </span>
+      <span class="post-reaction-link">
+        {% if post.comment_count > 0 %}
+        {{ post.comment_count }} comment{{ post.comment_count|pluralize }}
+        {% endif %}
+      </span>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="post-actions">
+      <button class="post-action-btn {% if post.user_liked %}liked{% endif %} gh-like-btn"
+              data-post-id="{{ post.id }}"
+              data-liked="{{ post.user_liked|lower }}">
+        <i class="bi bi-hand-thumbs-up{% if post.user_liked %}-fill{% endif %}"></i>
+        <span class="gh-like-label">Like</span>
+      </button>
+      <button class="post-action-btn" onclick="document.querySelector('.comment-input').focus()">
+        <i class="bi bi-chat-dots"></i> Comment
+      </button>
+    </div>
+
+    <!-- Comments Section (Always visible here) -->
+    <div class="comments-section open" id="comments-{{ post.id }}">
+      {% for comment in comments %}
+      <div class="comment-item">
+        <img src="{{ comment.author.profile.get_avatar_url }}" class="comment-avatar" alt="">
+        <div class="comment-bubble">
+          <span class="comment-author">{{ comment.author.get_full_name }}</span>
+          <p class="comment-text">{{ comment.content }}</p>
+        </div>
+        {% if comment.author == user %}
+        <form method="post" action="{% url 'social:delete_comment' comment.id %}">
+          {% csrf_token %}
+          <button type="submit" class="comment-delete-btn" title="Delete">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <!-- New comment input -->
+      <form method="post" action="{% url 'social:add_comment' post.id %}" class="comment-form">
+        {% csrf_token %}
+        <img src="{{ user.profile.get_avatar_url }}" class="comment-avatar" alt="">
+        <input type="text" name="content" class="comment-input" placeholder="Write a comment…" required autocomplete="off">
+        <button type="submit" class="comment-send-btn">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </form>
+    </div>
+
+  </article>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── AJAX Like ────────────────────────────────────────────
+document.querySelectorAll('.gh-like-btn').forEach(btn => {
+  btn.addEventListener('click', async function () {
+    const postId = this.dataset.postId;
+    try {
+      const res  = await fetch(`/feed/post/${postId}/like/`, {
+        method:  'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      });
+      const data = await res.json();
+
+      this.classList.toggle('liked', data.liked);
+      const icon = this.querySelector('i');
+      icon.className = data.liked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up';
+
+      const countEl = document.getElementById(`like-count-${postId}`);
+      if (countEl) {
+        countEl.innerHTML = data.like_count > 0
+          ? `<i class="bi bi-hand-thumbs-up-fill"></i><span>${data.like_count}</span>`
+          : '';
+      }
+
+      // Micro-bounce animation
+      if (data.liked) {
+        this.animate([
+          { transform: 'scale(1)' },
+          { transform: 'scale(1.25)' },
+          { transform: 'scale(1)' },
+        ], { duration: 300, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' });
+      }
+    } catch(e) { console.error('Like failed:', e); }
+  });
+});
+
+function getCookie(name) {
+  const v = `; ${document.cookie}`;
+  const parts = v.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+</script>
+{% endblock %}

@@ -332,6 +332,7 @@ class ActivityStats(TimestampedModel):
     # ---- Streak / engagement ----
     last_active_at = models.DateTimeField(null=True, blank=True)
     login_count = models.PositiveIntegerField(default=0)
+    profile_views = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = _("activity stats")
