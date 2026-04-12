@@ -23,7 +23,7 @@
       <i class="bi bi-list fs-4"></i>
     </button>
     <span class="gh-logo-text">GrowthHive</span>
-    <a href="{% url 'accounts:dashboard' %}" class="gh-avatar-sm">
+    <a href="{% url 'accounts:profile' %}" class="gh-avatar-sm">
       <img src="{{ user.profile.get_avatar_url }}" alt="avatar" />
     </a>
   </div>
@@ -45,7 +45,7 @@
       </div>
 
       <!-- User pill -->
-      <a href="{% url 'accounts:dashboard' %}" class="gh-sidebar-user" style="text-decoration: none; color: inherit;">
+      <a href="{% url 'accounts:profile' %}" class="gh-sidebar-user" style="text-decoration: none; color: inherit;">
         <img src="{{ user.profile.get_avatar_url }}" class="gh-sidebar-avatar" alt="avatar" />
         <div class="gh-sidebar-user-info">
           <span class="gh-sidebar-name">{{ user.first_name }} {{ user.last_name }}</span>
@@ -74,10 +74,7 @@
           class="gh-nav-link {% if 'chat' in request.resolver_match.app_name %}active{% endif %}">
           <i class="bi bi-chat-dots"></i><span>Messages</span>
         </a>
-        <a href="{% url 'notifications:list' %}"
-          class="gh-nav-link {% if 'notifications' in request.resolver_match.app_name %}active{% endif %}">
-          <i class="bi bi-bell"></i><span>Notifications</span>
-        </a>
+
 
         <p class="gh-nav-section">Explore</p>
         <a href="{% url 'jobs:list' %}"
@@ -104,10 +101,7 @@
           class="gh-nav-link {% if 'gamification' in request.resolver_match.app_name %}active{% endif %}">
           <i class="bi bi-trophy"></i><span>Leaderboard</span>
         </a>
-        <a href="{% url 'analytics:dashboard' %}"
-          class="gh-nav-link {% if 'analytics' in request.resolver_match.app_name %}active{% endif %}">
-          <i class="bi bi-graph-up"></i><span>Analytics</span>
-        </a>
+
 
         {% if user.is_student %}
         <p class="gh-nav-section">Students</p>
@@ -129,9 +123,6 @@
 
       <!-- Bottom actions -->
       <div class="gh-sidebar-footer">
-        <a href="{% url 'accounts:edit_profile' %}" class="gh-nav-link">
-          <i class="bi bi-gear"></i><span>Settings</span>
-        </a>
         <a href="{% url 'accounts:logout' %}" class="gh-nav-link gh-nav-logout">
           <i class="bi bi-box-arrow-left"></i><span>Logout</span>
         </a>
@@ -152,7 +143,7 @@
             <i class="bi bi-bell"></i>
             <span class="gh-notif-dot"></span>
           </a>
-          <a href="{% url 'accounts:dashboard' %}" class="gh-topbar-avatar">
+          <a href="{% url 'accounts:profile' %}" class="gh-topbar-avatar">
             <img src="{{ user.profile.get_avatar_url }}" alt="avatar" />
           </a>
         </div>

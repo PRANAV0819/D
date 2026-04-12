@@ -29,16 +29,20 @@ def network_view(request):
 
     pending_sent = Connection.objects.filter(
         sender=user, status=Connection.Status.PENDING
-    ).values_list('receiver_id', flat=True)
+    ).select_related('receiver', 'receiver__profile')
+    
+    pending_sent_ids = set(pending_sent.values_list('receiver_id', flat=True))
 
     accepted = Connection.objects.filter(
         Q(sender=user) | Q(receiver=user),
         status=Connection.Status.ACCEPTED,
     ).select_related('sender', 'sender__profile', 'receiver', 'receiver__profile')
 
+
+
     # IDs to exclude from suggestions
     connected_ids = Connection.accepted_ids_for(user)
-    excluded_ids  = connected_ids | set(pending_sent) | {user.pk}
+    excluded_ids  = connected_ids | pending_sent_ids | {user.pk}
 
     suggestions = (
         User.objects
@@ -50,7 +54,9 @@ def network_view(request):
 
     return render(request, 'connections/network.html', {
         'pending_received': pending_received,
-        'pending_sent_ids': set(pending_sent),
+        'pending_sent': pending_sent,
+        'pending_sent_ids': pending_sent_ids,
+        'pending_total': len(pending_received) + len(pending_sent_ids),
         'accepted':         accepted,
         'suggestions':      suggestions,
     })

@@ -143,5 +143,22 @@
 
     </div>
   </div>
+
+  {% if is_own %}
+  <div class="row mt-3">
+    <div class="col-12">
+      <div class="gh-card p-4 text-center" style="border: 1px dashed rgba(96, 165, 250, 0.3); background: rgba(96, 165, 250, 0.05);">
+        <h5 class="mb-3" style="font-weight: 700;">My Workspace</h5>
+        <p class="text-muted small mb-4">Access your full analytics dashboard.</p>
+        <div class="d-flex justify-content-center flex-wrap gap-3">
+          <a href="{% url 'analytics:dashboard' %}" class="btn gh-btn-primary px-4 py-2" style="border-radius: 30px;">
+            <i class="bi bi-graph-up me-2"></i>Analytics Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

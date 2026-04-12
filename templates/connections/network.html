@@ -35,7 +35,7 @@
       <i class="bi bi-hourglass-split"></i>
     </div>
     <div>
-      <div class="net-stat-card__val">{{ pending_received.count }}</div>
+      <div class="net-stat-card__val">{{ pending_total }}</div>
       <div class="net-stat-card__label">Pending Requests</div>
     </div>
   </div>
@@ -59,14 +59,14 @@
   </div>
 </form>
 
-<!-- ── Pending Incoming Requests ─────────────────────────────────────── -->
-{% if pending_received %}
+<!-- ── Pending Requests ─────────────────────────────────────── -->
+{% if pending_total > 0 %}
 <section class="net-section">
   <div class="net-section__header">
     <i class="bi bi-person-plus-fill"></i>
     <h2 class="net-section__title">
       Pending Requests
-      <span class="net-section__badge">{{ pending_received.count }}</span>
+      <span class="net-section__badge">{{ pending_total }}</span>
     </h2>
   </div>
 
@@ -97,6 +97,33 @@
             {% csrf_token %}
             <button class="net-btn net-btn--ghost">
               <i class="bi bi-x"></i> Ignore
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% for conn in pending_sent %}
+    <div class="net-card">
+      <div class="net-card__banner net-card__banner--{{ conn.receiver.role }}"></div>
+      <div class="net-card__body">
+        <div class="net-card__avatar-wrap">
+          <a href="{% url 'accounts:profile_detail' conn.receiver.pk %}">
+            <img src="{{ conn.receiver.profile.get_avatar_url }}" class="net-card__avatar" alt="{{ conn.receiver.get_full_name }}">
+          </a>
+        </div>
+        <a href="{% url 'accounts:profile_detail' conn.receiver.pk %}" class="net-card__name">
+          {{ conn.receiver.get_full_name }}
+        </a>
+        <span class="net-card__role">
+          {{ conn.receiver.get_role_display }}{% if conn.receiver.profile.department %} · {{ conn.receiver.profile.get_department_display }}{% endif %}
+        </span>
+        <div class="net-card__actions">
+          <form method="post" action="{% url 'connections:reject' conn.pk %}">
+            {% csrf_token %}
+            <button class="net-btn net-btn--danger" style="width: 100%;">
+              <i class="bi bi-x-circle"></i> Withdraw
             </button>
           </form>
         </div>
