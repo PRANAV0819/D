@@ -46,12 +46,12 @@ class Department(models.Model):
 # ── Predefined department options ────────────────────────────────────
 DEPARTMENT_CHOICES = [
     ('',           '— Select department —'),
-    ('AI_DS',      'AI & DS (Artificial Intelligence & Data Science)'),
-    ('CS',         'CS (Computer Science)'),
-    ('IT',         'IT (Information Technology)'),
-    ('ENTC',       'ENTC (Electronics & Telecommunication)'),
-    ('MECH',       'Mechanical Engineering'),
-    ('ELEC',       'Electrical Engineering'),
+    ('AI_DS',      'AI & DS'),
+    ('CS',         'CS'),
+    ('IT',         'IT'),
+    ('ENTC',       'EN & TC'),
+    ('MECH',       'Mechanical'),
+    ('ELEC',       'Electrical'),
 ]
 
 

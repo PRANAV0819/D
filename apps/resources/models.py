@@ -17,8 +17,11 @@ class Resource(models.Model):
     title        = models.CharField(max_length=200)
     description  = models.TextField(blank=True)
     category     = models.CharField(max_length=30, choices=ResourceCategory.choices, default=ResourceCategory.NOTES)
-    department   = models.ForeignKey(
-        'accounts.Department', on_delete=models.SET_NULL, null=True, blank=True
+    department   = models.CharField(
+        max_length=20,
+        choices=[('', '— Select department —')] + list(__import__('apps.accounts.models', fromlist=['DEPARTMENT_CHOICES']).DEPARTMENT_CHOICES)[1:],
+        blank=True,
+        default='',
     )
     subject      = models.CharField(max_length=200, blank=True)
     file         = models.FileField(upload_to='resources/')

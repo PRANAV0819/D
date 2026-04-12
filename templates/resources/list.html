@@ -16,7 +16,11 @@
     </select>
     <select name="dept" class="gh-input gh-filter-select">
       <option value="">All departments</option>
-      {% for d in departments %}<option value="{{ d.pk }}" {% if dept == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.code }}</option>{% endfor %}
+      {% for val, label in departments %}
+        {% if val %}
+          <option value="{{ val }}" {% if dept == val %}selected{% endif %}>{{ label }}</option>
+        {% endif %}
+      {% endfor %}
     </select>
     <button type="submit" class="btn gh-btn-primary">Filter</button>
     <a href="{% url 'resources:list' %}" class="btn gh-btn-outline">Clear</a>
@@ -30,7 +34,7 @@
          data-title="{{ res.title }}" 
          data-desc="{{ res.description|default:'No description provided.' }}" 
          data-cat="{{ res.get_category_display }}" 
-         data-dept="{{ res.department.code|default:'N/A' }}"
+         data-dept="{{ res.get_department_display|default:'N/A' }}"
          data-subject="{{ res.subject|default:'N/A' }}"
          data-author="{{ res.uploaded_by.get_full_name }}"
          data-time="{{ res.created_at|date:'M d, Y' }}"

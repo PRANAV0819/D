@@ -10,22 +10,27 @@ from .forms import ResourceForm
 @student_required
 @verified_required
 def resource_list_view(request):
-    resources = Resource.objects.select_related('uploaded_by', 'department')
+    resources = Resource.objects.select_related('uploaded_by')
     category = request.GET.get('category', '')
     dept     = request.GET.get('dept', '')
     q        = request.GET.get('q', '')
+
     if category:
         resources = resources.filter(category=category)
     if dept:
-        resources = resources.filter(department_id=dept)
+        resources = resources.filter(department=dept)
     if q:
         resources = resources.filter(title__icontains=q)
-    from apps.accounts.models import Department
-    departments = Department.objects.all()
+
+    from apps.accounts.models import DEPARTMENT_CHOICES
     from .models import ResourceCategory
+
     return render(request, 'resources/list.html', {
-        'resources': resources, 'departments': departments,
-        'category': category, 'dept': dept, 'q': q,
+        'resources': resources,
+        'departments': DEPARTMENT_CHOICES,
+        'category': category,
+        'dept': dept,
+        'q': q,
         'categories': ResourceCategory.choices,
     })
 
