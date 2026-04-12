@@ -197,13 +197,9 @@ def update_streak_view(request):
         ).exists()
         
         if not already_updated:
-            UserActivity.objects.create(
-                user=user,
-                action='streak_update',
-                activity_date=today,
-                points_earned=10
-            )
-            user.profile.points += 10
+            from apps.gamification.models import UserActivity
+            UserActivity.log(user, UserActivity.Action.STREAK_UPDATE)
+            
             user.profile.streak_days += 1
             user.profile.save()
             messages.success(request, 'Streak updated! +10 points.')

@@ -1,4 +1,5 @@
 from django.db.models.signals import post_save, post_delete
+from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 from .models import User, Profile, UserSkill
 
@@ -34,4 +35,22 @@ def on_skill_removed(sender, instance, **kwargs):
         from apps.mentorship.ai_matching import async_compute_embedding
         async_compute_embedding(instance.profile)
     except Exception:
-        pass
+        pass
+
+
+@receiver(user_logged_in)
+def on_user_login(sender, request, user, **kwargs):
+    """Log a 'login' activity once per day for points."""
+    from django.utils import timezone
+    from apps.gamification.models import UserActivity
+    
+    today = timezone.now().date()
+    already_logged = UserActivity.objects.filter(
+        user=user, 
+        action=UserActivity.Action.LOGIN, 
+        activity_date=today
+    ).exists()
+    
+    if not already_logged:
+        UserActivity.log(user, UserActivity.Action.LOGIN)
+

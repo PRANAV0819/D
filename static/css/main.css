@@ -1485,9 +1485,10 @@ textarea {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    border: 1px solid var(--gh-border);
-    border-radius: var(--gh-radius);
+    border: none;
+    border-radius: 20px;
     background: var(--gh-surface);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
 /* ── Left: Conversation list ─────────────────── */
@@ -1576,12 +1577,13 @@ textarea {
     text-decoration: none;
     color: var(--gh-text);
     cursor: pointer;
-    transition: background .12s;
     border-bottom: 1px solid var(--gh-border);
+    transition: background .2s, transform .2s ease;
 }
 
 .gh-room-item:hover {
     background: var(--gh-bg);
+    transform: translateX(4px);
 }
 
 .gh-room-item.active {
@@ -1712,9 +1714,13 @@ textarea {
     align-items: center;
     gap: .75rem;
     padding: .75rem 1rem;
-    background: var(--gh-surface);
+    background: rgba(255, 255, 255, 0.85); /* light fallback */
+    background: color-mix(in srgb, var(--gh-surface) 85%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--gh-border);
     flex-shrink: 0;
+    z-index: 10;
 }
 
 .gh-chat-header-profile {
@@ -1791,6 +1797,25 @@ textarea {
     scroll-behavior: smooth;
 }
 
+/* Custom scrollbar for better ui */
+.gh-messages-area::-webkit-scrollbar,
+.gh-chat-rooms::-webkit-scrollbar {
+    width: 6px;
+}
+.gh-messages-area::-webkit-scrollbar-track,
+.gh-chat-rooms::-webkit-scrollbar-track {
+    background: transparent;
+}
+.gh-messages-area::-webkit-scrollbar-thumb,
+.gh-chat-rooms::-webkit-scrollbar-thumb {
+    background: rgba(100, 100, 100, 0.2);
+    border-radius: 10px;
+}
+.gh-messages-area::-webkit-scrollbar-thumb:hover,
+.gh-chat-rooms::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 100, 100, 0.4);
+}
+
 .gh-messages-start {
     display: flex;
     flex-direction: column;
@@ -1812,20 +1837,28 @@ textarea {
 }
 
 /* ── Message bubbles ──────────────────────────── */
+@keyframes gh-pop-in {
+    0% { opacity: 0; transform: translateY(15px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .gh-msg-wrapper {
     display: flex;
     align-items: flex-end;
     gap: .5rem;
     max-width: 75%;
+    animation: gh-pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .gh-msg-own {
     align-self: flex-end;
     flex-direction: row-reverse;
+    transform-origin: bottom right;
 }
 
 .gh-msg-other {
     align-self: flex-start;
+    transform-origin: bottom left;
 }
 
 .gh-msg-avatar {
@@ -1855,18 +1888,20 @@ textarea {
 }
 
 .gh-msg-bubble {
-    padding: .55rem .85rem;
-    border-radius: 18px;
-    font-size: .9rem;
+    padding: .65rem 1rem;
+    border-radius: 20px;
+    font-size: .92rem;
     line-height: 1.55;
     word-break: break-word;
     max-width: 480px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.04);
 }
 
 .gh-msg-own .gh-msg-bubble {
-    background: var(--gh-blue);
+    background: linear-gradient(135deg, #0a66c2, #6941c6);
     color: #fff;
     border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 12px rgba(10, 102, 194, 0.3);
 }
 
 .gh-msg-other .gh-msg-bubble {
@@ -1946,26 +1981,30 @@ textarea {
 
 /* ── Input area ───────────────────────────────── */
 .gh-chat-input-area {
-    padding: .75rem 1rem;
-    background: var(--gh-surface);
-    border-top: 1px solid var(--gh-border);
+    padding: .75rem 1.25rem 1.25rem;
+    background: transparent;
+    border-top: none;
     flex-shrink: 0;
+    position: relative;
+    z-index: 10;
 }
 
 .gh-chat-input-wrap {
     display: flex;
     align-items: flex-end;
     gap: .5rem;
-    background: var(--gh-bg);
-    border: 1.5px solid var(--gh-border);
-    border-radius: 24px;
-    padding: .5rem .6rem .5rem 1rem;
-    transition: border .15s;
+    background: var(--gh-surface);
+    border: 1px solid var(--gh-border);
+    border-radius: 30px;
+    padding: .6rem .8rem .6rem 1.2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all .25s ease;
 }
 
 .gh-chat-input-wrap:focus-within {
     border-color: var(--gh-blue);
-    background: #fff;
+    box-shadow: 0 6px 20px rgba(10, 102, 194, 0.15);
+    transform: translateY(-2px);
 }
 
 .gh-chat-input {
@@ -2565,3 +2604,23 @@ textarea {
     background: #f4f0ff;
     color: var(--gh-purple);
 }
+
+/* ── Additional Utilities ────────────────────────────── */
+.gh-link-xs {
+    font-size: 0.7rem;
+    color: var(--gh-blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+.gh-link-xs:hover {
+    text-decoration: underline;
+}
+
+.sidebar-profile-pending .mini-request {
+    border-bottom: 1px solid var(--gh-border);
+    padding: 0.5rem 0.25rem;
+    text-align: left;
+}
+.sidebar-profile-pending .mini-request:last-child {
+    border-bottom: none;
+}

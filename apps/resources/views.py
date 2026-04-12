@@ -38,6 +38,8 @@ def upload_resource_view(request):
         r = form.save(commit=False)
         r.uploaded_by = request.user
         r.save()
+        from apps.gamification.models import UserActivity
+        UserActivity.log(user=request.user, action=UserActivity.Action.UPLOAD)
         messages.success(request, 'Resource uploaded!')
         return redirect('resources:list')
     return render(request, 'resources/form.html', {'form': form})
@@ -49,4 +51,10 @@ def download_resource_view(request, pk):
     resource = get_object_or_404(Resource, pk=pk)
     resource.download_count += 1
     resource.save(update_fields=['download_count'])
+    
+    # Give 1 point to author on every 10 downloads
+    if resource.download_count % 10 == 0:
+        from apps.gamification.models import UserActivity
+        UserActivity.log(user=resource.uploaded_by, action=UserActivity.Action.RESOURCE_DOWNLOADS)
+
     return FileResponse(resource.file.open('rb'), as_attachment=True, filename=resource.file.name.split('/')[-1])

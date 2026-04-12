@@ -37,6 +37,8 @@ class UserActivity(models.Model):
         PROJECT     = 'project',     'Joined a project'
         LOGIN       = 'login',       'Daily login'
         STREAK_UPDATE = 'streak_update', 'Updated streak'
+        LOST_FOUND_RESOLVE = 'lost_found_solve', 'Resolved lost & found'
+        RESOURCE_DOWNLOADS = 'res_download', '10 Resource Downloads'
 
     user          = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='activities')
     action        = models.CharField(max_length=30, choices=Action.choices)
@@ -49,10 +51,12 @@ class UserActivity(models.Model):
 
     # Points per action
     POINTS_MAP = {
-        'post': 10, 'comment': 5, 'like': 2,
-        'connect': 8, 'job_apply': 15, 'upload': 12,
+        'post': 5, 'comment': 5, 'like': 2,
+        'connect': 8, 'job_apply': 15, 'upload': 5,
         'project': 20, 'login': 3,
         'streak_update': 10,
+        'lost_found_solve': 5,
+        'res_download': 1,
     }
 
     @classmethod

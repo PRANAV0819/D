@@ -52,14 +52,18 @@ def feed_view(request):
     connections = User.objects.filter(pk__in=user_ids).exclude(pk=request.user.pk).select_related('profile').order_by('first_name')
 
     post_form = PostForm()
-    pending_requests = request.user.received_requests.filter(status='pending')[:3]
+    
+    pending_received = request.user.received_requests.filter(status=Connection.Status.PENDING)
+    pending_sent_count = request.user.sent_requests.filter(status=Connection.Status.PENDING).count()
+    pending_total = pending_received.count() + pending_sent_count
 
     return render(request, 'social/feed.html', {
         'posts':            posts,
         'post_form':        post_form,
         'conn_count':       conn_count,
+        'pending_total':    pending_total,
         'connections':      connections,
-        'pending_requests': pending_requests,
+        'pending_requests': pending_received[:3],
     })
 
 
@@ -74,6 +78,8 @@ def create_post_view(request):
         post = form.save(commit=False)
         post.author = request.user
         post.save()
+        from apps.gamification.models import UserActivity
+        UserActivity.log(user=request.user, action=UserActivity.Action.POST)
         messages.success(request, 'Post shared successfully.')
     else:
         messages.error(request, 'Could not create post. Please check the form.')
@@ -107,6 +113,8 @@ def toggle_like_view(request, post_id):
         liked = False
     else:
         liked = True
+        from apps.gamification.models import UserActivity
+        UserActivity.log(user=request.user, action=UserActivity.Action.LIKE)
 
     return JsonResponse({
         'liked':      liked,
@@ -127,6 +135,8 @@ def add_comment_view(request, post_id):
         comment.post   = post
         comment.author = request.user
         comment.save()
+        from apps.gamification.models import UserActivity
+        UserActivity.log(user=request.user, action=UserActivity.Action.COMMENT)
 
     return redirect(request.META.get('HTTP_REFERER', 'social:feed'))
 

@@ -43,6 +43,8 @@ def lf_resolve_view(request, pk):
     item = get_object_or_404(LostFoundItem, pk=pk, posted_by=request.user)
     item.status = 'claimed'
     item.save()
+    from apps.gamification.models import UserActivity
+    UserActivity.log(user=request.user, action=UserActivity.Action.LOST_FOUND_RESOLVE)
     messages.success(request, 'Marked as resolved/sold.')
     return redirect('lost_found:list')
 
@@ -53,3 +55,15 @@ def lf_delete_view(request, pk):
     item.delete()
     messages.success(request, 'Post deleted successfully.')
     return redirect('lost_found:list')
+
+
+@student_required
+@verified_required
+def lf_edit_view(request, pk):
+    item = get_object_or_404(LostFoundItem, pk=pk, posted_by=request.user)
+    form = LostFoundForm(request.POST or None, request.FILES or None, instance=item)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Post updated!')
+        return redirect('lost_found:detail', pk=item.pk)
+    return render(request, 'lost_found/form.html', {'form': form, 'is_edit': True, 'item': item})

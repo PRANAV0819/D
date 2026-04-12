@@ -219,6 +219,64 @@
 {% endfor %}
   </div>{# end feed-main #}
 
+  <!-- ══════════════════════ RIGHT: SIDEBAR ══════════════════════ -->
+  <aside class="feed-sidebar">
+    <!-- Mini Profile Card -->
+    <div class="sidebar-profile-card">
+      <div class="sidebar-profile-banner sidebar-profile-banner--{{ user.role }}"></div>
+      <div class="sidebar-profile-body">
+        <a href="{% url 'accounts:profile' %}">
+          <img src="{{ user.profile.get_avatar_url }}" class="sidebar-profile-avatar" alt="Your avatar">
+        </a>
+        <a href="{% url 'accounts:profile' %}" class="sidebar-profile-name">
+          {{ user.get_full_name }}
+        </a>
+        <span class="sidebar-profile-role">{{ user.get_role_display }}</span>
+
+        <div class="sidebar-stats">
+          <a href="{% url 'connections:network' %}" class="sidebar-stat">
+            <span class="sidebar-stat__val" id="conn-count">{{ conn_count }}</span>
+            <span class="sidebar-stat__label">Connections</span>
+          </a>
+          <a href="{% url 'connections:network' %}" class="sidebar-stat">
+            <span class="sidebar-stat__val">{{ pending_total }}</span>
+            <span class="sidebar-stat__label">Pending</span>
+          </a>
+          <div class="sidebar-stat">
+            <span class="sidebar-stat__val">{{ user.profile.points }}</span>
+            <span class="sidebar-stat__label">Points</span>
+          </div>
+        </div>
+
+        <a href="{% url 'accounts:profile' %}" class="sidebar-profile-link">
+          <i class="bi bi-person-badge"></i> View My Profile
+        </a>
+
+        {% if pending_requests %}
+        <div class="sidebar-profile-pending mt-3 pt-3 border-top">
+          <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+            <span class="small fw-bold text-muted">Recent Requests</span>
+            <a href="{% url 'connections:network' %}" class="gh-link-xs">See all</a>
+          </div>
+          {% for req in pending_requests %}
+          <div class="mini-request">
+            <img src="{{ req.sender.profile.get_avatar_url }}" class="mini-request-avatar" alt="">
+            <div class="mini-request-info">
+              <span class="mini-request-name">{{ req.sender.get_full_name }}</span>
+              <span class="mini-request-role">{{ req.sender.get_role_display }}</span>
+            </div>
+            <form method="post" action="{% url 'connections:accept' req.pk %}">
+              {% csrf_token %}
+              <button class="mini-accept-btn">Accept</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </aside>
+
 <!-- ══════════════════════════════════════════════════
      SHARE MODAL
 ══════════════════════════════════════════════════ -->
@@ -287,65 +345,7 @@
 </div>
 
   <!-- ══════════════════════ RIGHT: SIDEBAR ══════════════════════ -->
-  <aside class="feed-sidebar">
 
-    <!-- Mini Profile Card -->
-    <div class="sidebar-profile-card">
-      <div class="sidebar-profile-banner sidebar-profile-banner--{{ user.role }}"></div>
-      <div class="sidebar-profile-body">
-        <a href="{% url 'accounts:profile' %}">
-          <img src="{{ user.profile.get_avatar_url }}" class="sidebar-profile-avatar" alt="Your avatar">
-        </a>
-        <a href="{% url 'accounts:profile' %}" class="sidebar-profile-name">
-          {{ user.get_full_name }}
-        </a>
-        <span class="sidebar-profile-role">{{ user.get_role_display }}</span>
-
-        <div class="sidebar-stats">
-          <a href="{% url 'connections:network' %}" class="sidebar-stat">
-            <span class="sidebar-stat__val" id="conn-count">{{ conn_count }}</span>
-            <span class="sidebar-stat__label">Connections</span>
-          </a>
-          <div class="sidebar-stat">
-            <span class="sidebar-stat__val">{{ user.profile.points }}</span>
-            <span class="sidebar-stat__label">Points</span>
-          </div>
-        </div>
-
-        <a href="{% url 'accounts:profile' %}" class="sidebar-profile-link">
-          <i class="bi bi-person-badge"></i> View My Profile
-        </a>
-      </div>
-    </div>
-
-    <!-- Pending Requests Widget -->
-    <div class="sidebar-card">
-      <div class="sidebar-card__header">
-        <h6 class="sidebar-card__title">
-          <i class="bi bi-person-plus-fill me-1" style="color: var(--gh-blue);"></i>
-          Pending Requests
-        </h6>
-        <a href="{% url 'connections:network' %}" class="sidebar-card__link">See all</a>
-      </div>
-
-      {% for req in pending_requests %}
-      <div class="mini-request">
-        <img src="{{ req.sender.profile.get_avatar_url }}" class="mini-request-avatar" alt="">
-        <div class="mini-request-info">
-          <span class="mini-request-name">{{ req.sender.get_full_name }}</span>
-          <span class="mini-request-role">{{ req.sender.get_role_display }}</span>
-        </div>
-        <form method="post" action="{% url 'connections:accept' req.pk %}">
-          {% csrf_token %}
-          <button class="mini-accept-btn">Accept</button>
-        </form>
-      </div>
-      {% empty %}
-      <p class="sidebar-empty-text">No pending requests.</p>
-      {% endfor %}
-    </div>
-
-  </aside>
 </div>
 {% endblock %}
 

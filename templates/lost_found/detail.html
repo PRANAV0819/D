@@ -24,6 +24,7 @@
       <a href="{% url 'chat:create_dm' item.posted_by.pk %}" class="btn gh-btn-primary btn-sm"><i class="bi bi-chat me-1"></i>Contact</a>
       {% endif %}
       {% if item.posted_by == request.user and item.status == 'open' %}
+      <a href="{% url 'lost_found:edit' item.pk %}" class="btn gh-btn-outline btn-sm"><i class="bi bi-pencil"></i> Edit</a>
       <form method="post" action="{% url 'lost_found:resolve' item.pk %}" class="d-inline">{% csrf_token %}
         <button class="btn gh-btn-outline btn-sm">Mark Resolved</button>
       </form>

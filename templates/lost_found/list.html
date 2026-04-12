@@ -40,6 +40,7 @@
       <span class="gh-tag {% if item.item_type == 'lost' %}gh-tag-coral{% else %}gh-tag-green{% endif %}">{{ item.get_item_type_display }}</span>
       <div class="d-flex gap-2">
         {% if item.posted_by == request.user and item.status == 'open' %}
+          <a href="{% url 'lost_found:edit' item.pk %}" class="btn gh-btn-outline btn-sm py-1 px-2" title="Edit Post"><i class="bi bi-pencil"></i></a>
           <form method="post" action="{% url 'lost_found:resolve' item.pk %}" class="d-inline">{% csrf_token %}
             <button class="btn gh-btn-outline btn-sm py-1 px-2" title="Mark Resolved"><i class="bi bi-check2"></i></button>
           </form>
