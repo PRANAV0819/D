@@ -1,89 +1,84 @@
 {% extends 'base.html' %}
-{% block title %}Post Item — Lost & Found{% endblock %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Post Item — GrowthHive{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lf-form-card {
+        max-width: 800px;
+        margin: 2rem auto;
+        background: var(--gh-surface);
+        border: 1px solid var(--gh-border);
+        border-radius: 12px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    .form-section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--gh-blue);
+        display: inline-block;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-8 col-lg-6">
-    <div class="gh-page-header text-center mb-4">
-      <h1 class="h3">{% if is_edit %}Edit Item{% else %}Report Lost or Found Item{% endif %}</h1>
-      <p class="text-muted">{% if is_edit %}Update the details below.{% else %}Help the campus community by sharing details.{% endif %}</p>
-    </div>
-
-    <div class="gh-card">
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-
+<div class="container">
+    <div class="lf-form-card">
         <div class="mb-4">
-          <label class="gh-label d-block text-center mb-3">Is your item Lost or Found?</label>
-          <div class="btn-group w-100" role="group">
-            <input type="radio" class="btn-check" name="item_type" id="type_lost" value="lost" {% if form.item_type.value == 'lost' %}checked{% endif %} required>
-            <label class="btn btn-outline-danger" for="type_lost">I Lost Something</label>
+            <a href="{% url 'lost_found:list' %}" class="btn btn-link p-0 text-decoration-none mb-3">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            <h2 class="fw-bold">{{ title }}</h2>
+            <p class="text-muted">Fill in the details about the item you lost or found.</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
             
-            <input type="radio" class="btn-check" name="item_type" id="type_found" value="found" {% if form.item_type.value == 'found' %}checked{% endif %} required>
-            <label class="btn btn-outline-success" for="type_found">I Found Something</label>
-          </div>
-          {% if form.item_type.errors %}<div class="gh-field-error mt-2">{{ form.item_type.errors|join:", " }}</div>{% endif %}
-        </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.item_type|as_crispy_field }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.category|as_crispy_field }}
+                </div>
+            </div>
 
-        <div class="mb-3">
-          <label class="gh-label">Item Name</label>
-          {{ form.title }}
-          {% if form.title.errors %}<div class="gh-field-error">{{ form.title.errors|join:", " }}</div>{% endif %}
-        </div>
+            <div class="mb-3">
+                {{ form.title|as_crispy_field }}
+            </div>
 
-        <div class="mb-3">
-          <label class="gh-label">Description</label>
-          {{ form.description }}
-          {% if form.description.errors %}<div class="gh-field-error">{{ form.description.errors|join:", " }}</div>{% endif %}
-        </div>
+            <div class="mb-3">
+                {{ form.description|as_crispy_field }}
+            </div>
 
-        <div class="mb-3" id="depositedAtWrapper" style="display:none;">
-          <label class="gh-label">Deposited At (Found Items only)</label>
-          {{ form.deposited_at }}
-          {% if form.deposited_at.errors %}<div class="gh-field-error">{{ form.deposited_at.errors|join:", " }}</div>{% endif %}
-          <p class="text-muted small mt-1">Where did you leave the item? e.g. Staff Room, Security Desk.</p>
-        </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.location|as_crispy_field }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.date|as_crispy_field }}
+                </div>
+            </div>
 
-        <div class="mb-3">
-          <label class="gh-label">Location (where you lost/found it)</label>
-          {{ form.location }}
-          {% if form.location.errors %}<div class="gh-field-error">{{ form.location.errors|join:", " }}</div>{% endif %}
-        </div>
+            <div class="mb-4">
+                {{ form.image|as_crispy_field }}
+            </div>
 
-        <div class="mb-4">
-          <label class="gh-label">Image (optional)</label>
-          <input type="file" name="image" class="gh-input" accept="image/*">
-          {% if form.image.errors %}<div class="gh-field-error">{{ form.image.errors|join:", " }}</div>{% endif %}
-        </div>
+            <hr class="my-4">
 
-        <div class="d-flex gap-2">
-          <a href="{% if is_edit %}{% url 'lost_found:detail' item.pk %}{% else %}{% url 'lost_found:list' %}{% endif %}" class="btn gh-btn-outline w-50 justify-content-center">Cancel</a>
-          <button type="submit" class="btn gh-btn-primary w-50">{% if is_edit %}Update Item{% else %}Post Item{% endif %}</button>
-        </div>
-      </form>
+            <div class="d-flex justify-content-end gap-3">
+                <a href="{% url 'lost_found:list' %}" class="btn btn-light px-4">Cancel</a>
+                <button type="submit" class="btn btn-primary px-5">
+                    Submit Report
+                </button>
+            </div>
+        </form>
     </div>
-  </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const lostRadio = document.getElementById('type_lost');
-  const foundRadio = document.getElementById('type_found');
-  const depositedWrapper = document.getElementById('depositedAtWrapper');
-
-  function toggleDeposited() {
-    if (foundRadio.checked) {
-      depositedWrapper.style.display = 'block';
-    } else {
-      depositedWrapper.style.display = 'none';
-    }
-  }
-
-  lostRadio.addEventListener('change', toggleDeposited);
-  foundRadio.addEventListener('change', toggleDeposited);
-  
-  // Initial check
-  toggleDeposited();
-});
-</script>
 {% endblock %}

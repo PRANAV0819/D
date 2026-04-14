@@ -1,38 +1,222 @@
 {% extends 'base.html' %}
-{% block title %}{{ item.title }} — Lost & Found{% endblock %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ item.title }} — GrowthHive{% endblock %}
+
+{% block extra_css %}
+<style>
+    .lf-detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+    @media (max-width: 992px) {
+        .lf-detail-grid { grid-template-columns: 1fr; }
+    }
+    
+    .lf-main-card {
+        background: var(--gh-surface);
+        border: 1px solid var(--gh-border);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    .lf-detail-img {
+        width: 100%;
+        max-height: 450px;
+        object-fit: contain;
+        background: #f8f9fa;
+        border-bottom: 1px solid var(--gh-border);
+    }
+    .lf-content { padding: 2rem; }
+    
+    .lf-match-card {
+        background: var(--gh-blue-soft);
+        border: 1px solid var(--gh-blue-border);
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: transform 0.2s;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    .lf-match-card:hover {
+        transform: scale(1.02);
+        color: inherit;
+    }
+    .lf-match-score {
+        background: var(--gh-blue);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+    .lf-match-thumb {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+    
+    .claim-item {
+        background: var(--gh-surface);
+        border: 1px solid var(--gh-border);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="max-width:700px;">
-  <div class="gh-card">
-    {% if item.image %}<img src="{{ item.image.url }}" style="width:100%;max-height:320px;object-fit:cover;border-radius:8px;margin-bottom:1rem;" alt=""/>{% endif %}
-    <div class="d-flex gap-2 mb-3">
-      <span class="gh-tag {% if item.item_type == 'lost' %}gh-tag-coral{% else %}gh-tag-green{% endif %}">{{ item.get_item_type_display }}</span>
-      <span class="gh-tag gh-tag-gray">{{ item.get_status_display }}</span>
+<div class="container-fluid">
+    <div class="mb-4">
+        <a href="{% url 'lost_found:list' %}" class="btn btn-link p-0 text-decoration-none">
+            <i class="bi bi-arrow-left"></i> Back to Feed
+        </a>
     </div>
-    <h2 class="h4">{{ item.title }}</h2>
-    {% if item.location %}<p class="text-muted mb-1"><i class="bi bi-geo-alt me-1"></i>Found at: {{ item.location }}</p>{% endif %}
-    {% if item.deposited_at %}<div class="alert alert-success py-2 px-3 small d-flex align-items-center mb-3"><i class="bi bi-info-circle-fill me-2"></i>Deposited at: <strong>{{ item.deposited_at }}</strong></div>{% endif %}
-    <p>{{ item.description }}</p>
-    <hr/>
-    <div class="d-flex align-items-center gap-2">
-      <img src="{{ item.posted_by.profile.get_avatar_url }}" style="width:36px;height:36px;border-radius:50%;" alt=""/>
-      <div class="flex-grow-1">
-        <a href="{% url 'accounts:profile_detail' item.posted_by.pk %}" class="fw-700 text-decoration-none">{{ item.posted_by.get_full_name }}</a>
-        <span class="text-muted d-block small">{{ item.created_at|timesince }} ago</span>
-      </div>
-      {% if item.posted_by != request.user and item.status == 'open' %}
-      <a href="{% url 'chat:create_dm' item.posted_by.pk %}" class="btn gh-btn-primary btn-sm"><i class="bi bi-chat me-1"></i>Contact</a>
-      {% endif %}
-      {% if item.posted_by == request.user and item.status == 'open' %}
-      <a href="{% url 'lost_found:edit' item.pk %}" class="btn gh-btn-outline btn-sm"><i class="bi bi-pencil"></i> Edit</a>
-      <form method="post" action="{% url 'lost_found:resolve' item.pk %}" class="d-inline">{% csrf_token %}
-        <button class="btn gh-btn-outline btn-sm">Mark Resolved</button>
-      </form>
-      <form method="post" action="{% url 'lost_found:delete' item.pk %}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this post?');">{% csrf_token %}
-        <button class="btn gh-btn-outline text-danger border-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
-      </form>
-      {% endif %}
+
+    <div class="lf-detail-grid">
+        <!-- Main Info -->
+        <div class="lf-main-column">
+            <div class="lf-main-card">
+                {% if item.image %}
+                <img src="{{ item.image.url }}" class="lf-detail-img" alt="{{ item.title }}">
+                {% endif %}
+                
+                <div class="lf-content">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge {% if item.item_type == 'lost' %}bg-danger-subtle text-danger{% else %}bg-success-subtle text-success{% endif %} text-uppercase px-3 py-2 mb-2">
+                                {{ item.get_item_type_display }}
+                            </span>
+                            <h1 class="fw-bold mb-1">{{ item.title }}</h1>
+                            <div class="text-muted d-flex gap-3">
+                                <span><i class="bi bi-tag"></i> {{ item.get_category_display }}</span>
+                                <span><i class="bi bi-calendar3"></i> Posted {{ item.created_at|date:"M d" }}</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge {% if item.status == 'open' %}bg-primary{% else %}bg-secondary{% endif %} fs-6">
+                                {{ item.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 bg-light p-3 rounded">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="small text-muted d-block">Location</label>
+                                <span class="fw-semibold"><i class="bi bi-geo-alt"></i> {{ item.location }}</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="small text-muted d-block">Date of Event</label>
+                                <span class="fw-semibold"><i class="bi bi-calendar-check"></i> {{ item.date }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">Description</h5>
+                    <p class="text-secondary lead" style="white-space: pre-wrap;">{{ item.description|default:"No description provided." }}</p>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ item.user.profile.get_avatar_url }}" class="rounded-circle" width="48" height="48" alt="">
+                        <div>
+                            <p class="mb-0 fw-bold">Reported by {{ item.user.get_full_name }}</p>
+                            <p class="mb-0 text-muted small">{{ item.user.get_role_display }} · {{ item.user.department }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Section -->
+            {% if item.user == request.user %}
+                <div class="mt-4">
+                    <h4 class="fw-bold mb-3">Manage Claims</h4>
+                    {% for claim in item.claims.all %}
+                        <div class="claim-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="{{ claim.claimant.profile.get_avatar_url }}" class="rounded-circle" width="40" height="40" alt="">
+                                <div>
+                                    <p class="mb-0 fw-bold">{{ claim.claimant.get_full_name }} sent a claim</p>
+                                    <p class="mb-0 small text-muted">"{{ claim.message }}"</p>
+                                </div>
+                            </div>
+                            <div>
+                                {% if claim.status == 'pending' %}
+                                    <a href="{% url 'lost_found:manage_claim' claim.pk 'accept' %}" class="btn btn-sm btn-success">Accept</a>
+                                    <a href="{% url 'lost_found:manage_claim' claim.pk 'reject' %}" class="btn btn-sm btn-outline-danger">Reject</a>
+                                {% else %}
+                                    <span class="badge {% if claim.status == 'accepted' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ claim.get_status_display }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-light border">No claim requests yet.</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar: Matching & Claims -->
+        <div class="lf-sidebar">
+            <!-- Possible Matches -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Possible Matches</h5>
+                    {% if matches %}
+                        <div class="alert alert-info py-2 small mb-3">
+                            <i class="bi bi-stars"></i> We found {{ matches|length }} item{{ matches|pluralize }} that might be a match!
+                        </div>
+                        {% for match in matches %}
+                            <a href="{% url 'lost_found:detail' match.item.pk %}" class="lf-match-card">
+                                {% if match.item.image %}
+                                    <img src="{{ match.item.image.url }}" class="lf-match-thumb" alt="">
+                                {% else %}
+                                    <div class="lf-match-thumb bg-light d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-image text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <p class="mb-0 fw-bold text-truncate">{{ match.item.title }}</p>
+                                    <span class="lf-match-score">{{ match.score }} pts</span>
+                                    <span class="small text-muted ms-2">{{ match.item.location }}</span>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted small">No potential matches found yet. We'll alert you if something similar is posted.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Claim Box (For others) -->
+            {% if item.user != request.user and item.status == 'open' %}
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Is this yours?</h5>
+                        <p class="small text-muted mb-3">Submit a claim request to the owner. They will review your message and contact you if it matches.</p>
+                        
+                        <form method="post" action="{% url 'lost_found:claim_item' item.pk %}">
+                            {% csrf_token %}
+                            {{ claim_form|crispy }}
+                            <button type="submit" class="btn btn-primary w-100 mt-2">
+                                <i class="bi bi-send-check me-1"></i> Submit Claim
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}

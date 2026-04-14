@@ -1,13 +1,19 @@
 from django import forms
-from .models import LostFoundItem
+from .models import Item, ClaimRequest
 
-class LostFoundForm(forms.ModelForm):
+class ItemForm(forms.ModelForm):
     class Meta:
-        model  = LostFoundItem
-        fields = ['item_type', 'title', 'description', 'location', 'deposited_at', 'image']
+        model = Item
+        fields = ['item_type', 'title', 'description', 'category', 'location', 'date', 'image']
         widgets = {
-            'title':        forms.TextInput(attrs={'placeholder': 'e.g. Black Umbrella'}),
-            'description':  forms.Textarea(attrs={'rows': 3}),
-            'location':     forms.TextInput(attrs={'placeholder': 'e.g. Library 2nd floor'}),
-            'deposited_at': forms.TextInput(attrs={'placeholder': 'e.g. Security Desk, Block A'}),
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class ClaimForm(forms.ModelForm):
+    class Meta:
+        model = ClaimRequest
+        fields = ['message']
+        widgets = {
+            'message': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Describe why this item is yours...'}),
         }

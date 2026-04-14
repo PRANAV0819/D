@@ -12,7 +12,7 @@ from apps.connections.models import Connection
 from apps.social.models import Post, Comment, Like
 from apps.mentorship.models import MentorshipRequest, MentorSession
 from apps.marketplace.models import MarketplaceItem
-from apps.lost_found.models import LostFoundItem
+from apps.lost_found.models import Item as LostFoundItem
 from apps.projects.models import Project, ProjectMember
 from apps.resources.models import Resource
 
@@ -100,8 +100,8 @@ def analytics_view(request):
     market_posts = MarketplaceItem.objects.filter(seller=user).count()
     items_sold   = MarketplaceItem.objects.filter(seller=user, status='sold').count()
 
-    lf_reports = LostFoundItem.objects.filter(posted_by=user).count()
-    lf_resolved= LostFoundItem.objects.filter(posted_by=user, status='claimed').count()
+    lf_reports = LostFoundItem.objects.filter(user=user).count()
+    lf_resolved= LostFoundItem.objects.filter(user=user, status='resolved').count()
 
     projects_created = Project.objects.filter(owner=user).count()
     projects_joined  = ProjectMember.objects.filter(user=user).count()
